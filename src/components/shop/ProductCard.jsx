@@ -1,0 +1,85 @@
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useCart } from '../../context/CartContext';
+import { ShoppingBag } from 'lucide-react';
+
+const ProductCard = ({ product, index, isNew = false }) => {
+  const { dispatch } = useCart();
+
+  const handleAddToCart = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const cartItem = {
+      ...product,
+      image: product.images?.[0] || product.image
+    };
+    
+    dispatch({ type: 'ADD_ITEM', payload: cartItem });
+  };
+
+  const productImage = product.images?.[0] || product.image;
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8, delay: index * 0.1 }}
+      className="group"
+    >
+      <Link to={`/product/${product.id}`} className="block">
+        <div className="relative aspect-[4/5] w-full max-w-[240px] mx-auto rounded-2xl overflow-hidden mb-4 md:mb-8 bg-white transition-all duration-700 group-hover:shadow-2xl group-hover:shadow-charcoal/10 ring-1 ring-charcoal/15">
+          <img 
+            src={productImage} 
+            alt={product.name}
+            className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-110"
+          />
+          
+          {/* Add to Cart Overlay */}
+          <div className="absolute inset-0 bg-charcoal/0 group-hover:bg-charcoal/20 transition-all duration-700 flex items-end justify-center pb-6 z-10">
+            <button 
+              onClick={handleAddToCart}
+              className="translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 bg-white text-charcoal px-4 py-2 md:px-6 md:py-3 rounded-full flex items-center gap-2 text-[10px] md:text-xs font-bold uppercase tracking-widest hover:bg-gold hover:text-white shadow-xl transform active:scale-95"
+            >
+              <ShoppingBag size={14} />
+              Add to Cart
+            </button>
+          </div>
+
+          {isNew && (
+            <div className="absolute top-2 left-2 md:top-4 md:left-4 z-20">
+              <span className="text-[6px] md:text-[8px] bg-charcoal text-ivory px-1.5 md:px-2 py-0.5 md:py-1 uppercase tracking-widest">
+                New
+              </span>
+            </div>
+          )}
+        </div>
+        
+        <div className="text-center space-y-1 md:space-y-2">
+          <span className="text-[7px] md:text-[9px] uppercase tracking-[0.2em] md:tracking-[0.4em] text-gold font-bold block">
+            {product.category}
+          </span>
+          <h3 className="text-sm md:text-xl font-serif italic text-charcoal tracking-tight group-hover:text-gold transition-colors duration-500 font-bold">
+            {product.name}
+          </h3>
+          <p className="font-sans text-[10px] md:text-[12px] font-bold text-charcoal/70 tracking-[0.1em]">
+            Rs. {product.price}
+          </p>
+        </div>
+      </Link>
+      
+      {product.notes && (
+        <div className="hidden md:flex gap-1 justify-center mt-3">
+          {product.notes.slice(0, 3).map(note => (
+            <span key={note} className="text-[8px] border border-charcoal/10 px-1.5 py-0.5 text-charcoal/40 uppercase tracking-tighter">
+              {note}
+            </span>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+};
+
+export default ProductCard;

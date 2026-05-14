@@ -1,0 +1,138 @@
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ShoppingBag, Menu, X, Search, Shield } from 'lucide-react';
+import { useCart } from '../../context/CartContext';
+import CartDrawer from '../shop/CartDrawer';
+import { Link, useLocation } from 'react-router-dom';
+
+const Navbar = ({ variant = 'dark' }) => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { state, dispatch } = useCart();
+  const location = useLocation();
+  const itemCount = state.items.reduce((acc, item) => acc + item.quantity, 0);
+
+  // Determine text color based on scroll and variant
+  const isLight = variant === 'light' && !isScrolled && !isMobileMenuOpen;
+  const textColor = isLight ? 'text-ivory' : 'text-charcoal';
+  const subTextColor = isLight ? 'text-ivory/70' : 'text-charcoal/70';
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location]);
+
+  const navLinks = [
+    { name: 'New Arrivals', path: '/new-arrivals' },
+    { name: 'Essences', path: '/shop' },
+    { name: 'Vision', path: '/vision' },
+  ];
+
+  return (
+    <>
+      <motion.nav
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        className={`fixed top-0 w-full z-50 transition-all duration-500 ${
+          isScrolled || isMobileMenuOpen
+            ? 'py-4 bg-[#F5F2ED]/95 backdrop-blur-md shadow-sm border-b border-charcoal/5'
+            : 'py-8 bg-transparent'
+        }`}
+      >
+        <div className="container mx-auto px-6 flex justify-between items-center">
+          <div className={`hidden md:flex gap-8 items-center text-[10px] uppercase tracking-[0.3em] font-sans ${subTextColor} transition-colors duration-500`}>
+            {navLinks.map((link) => (
+              <Link 
+                key={link.name} 
+                to={link.path} 
+                className="hover:text-gold transition-colors duration-300"
+              >
+                {link.name}
+              </Link>
+            ))}
+          </div>
+
+          <Link 
+            to="/" 
+            className={`text-2xl md:text-3xl font-serif tracking-[0.3em] ${textColor} uppercase transition-all duration-500 hover:scale-105`}
+          >
+            Kashume
+          </Link>
+
+          <div className={`flex gap-4 md:gap-6 items-center ${textColor} transition-colors duration-500`}>
+            <button className="hover:text-gold transition-colors duration-300 hidden md:block">
+              <Search size={18} strokeWidth={1.5} />
+            </button>
+
+            <Link 
+              to="/admin" 
+              className="hover:text-gold transition-colors duration-300 hidden md:flex items-center"
+              title="Admin Sanctum"
+            >
+              <Shield size={16} strokeWidth={1.5} />
+            </Link>
+            
+            <button 
+              onClick={() => dispatch({ type: 'TOGGLE_CART', payload: true })}
+              className="relative hover:text-gold transition-colors duration-300"
+            >
+              <ShoppingBag size={18} strokeWidth={1.5} />
+              {itemCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-gold text-white text-[7px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-sans font-bold">
+                  {itemCount}
+                </span>
+              )}
+            </button>
+            
+            <button 
+              className="md:hidden p-1"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X size={20} strokeWidth={1.5} /> : <Menu size={20} strokeWidth={1.5} />}
+            </button>
+          </div>
+        </div>
+
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className="md:hidden bg-[#F5F2ED] border-t border-charcoal/5 overflow-hidden"
+            >
+              <div className="flex flex-col items-center py-12 gap-8">
+                {navLinks.map((link) => (
+                  <Link 
+                    key={link.name} 
+                    to={link.path} 
+                    className="text-xs uppercase tracking-[0.4em] text-charcoal hover:text-gold transition-colors"
+                  >
+                    {link.name}
+                  </Link>
+                ))}
+                <Link 
+                  to="/admin" 
+                  className="text-xs uppercase tracking-[0.4em] text-gold/60 italic hover:text-gold transition-colors"
+                >
+                  Command
+                </Link>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.nav>
+
+      <CartDrawer isOpen={state.isCartOpen} onClose={() => dispatch({ type: 'TOGGLE_CART', payload: false })} />
+    </>
+  );
+};
+
+export default Navbar;
