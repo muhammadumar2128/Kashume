@@ -12,31 +12,15 @@ const Home = () => {
   const [loadingBundles, setLoadingBundles] = useState(true);
   const { dispatch } = useCart();
 
-  const fallbackBundles = [
-    {
-      id: 'discovery-set',
-      name: "The Discovery Trio",
-      price: 5999,
-      originalPrice: 7097,
-      description: "A comprehensive olfactory journey through our complete library. Experience the full spectrum of Kashume.",
-      image: "/images/DATA 1.O/Bundles/1.png",
-      items: ["INTERO: HIM (50ml)", "INTERO: HER (50ml)", "INTERO: ONE (50ml)"],
-      benefit: "Saves Rs. 1098 + Complimentary Shipping"
-    },
-    {
-      id: 'his-her-duo',
-      name: "His & Her Duo",
-      price: 3999,
-      originalPrice: 4498,
-      description: "A perfect harmony of contrasting energies. Curated to complement the dual nature of modern grace.",
-      image: "/images/DATA 1.O/Bundles/HIM - HER.png",
-      items: ["INTERO: HIM (50ml)", "INTERO: HER (50ml)"],
-      benefit: "Complimentary Shipping"
-    }
-  ];
-
   useEffect(() => {
     const fetchBundles = async () => {
+      // Don't fetch if Supabase is not configured
+      if (import.meta.env.VITE_SUPABASE_URL.includes('placeholder')) {
+        setBundles([]);
+        setLoadingBundles(false);
+        return;
+      }
+
       try {
         const { data, error } = await supabase
           .from('products')
@@ -44,8 +28,8 @@ const Home = () => {
           .eq('is_bundle', true)
           .limit(2);
 
-        if (error || !data || data.length === 0) {
-          setBundles(fallbackBundles);
+        if (error || !data) {
+          setBundles([]);
         } else {
           const dynamicBundles = data.map(p => ({
             id: p.id,
@@ -60,7 +44,7 @@ const Home = () => {
           setBundles(dynamicBundles);
         }
       } catch (err) {
-        setBundles(fallbackBundles);
+        setBundles([]);
       } finally {
         setLoadingBundles(false);
       }

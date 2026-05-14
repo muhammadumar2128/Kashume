@@ -7,7 +7,7 @@ import {
   Search, Filter, ArrowLeft, Loader2, CheckCircle2, AlertCircle,
   Package, ShoppingBag, Clock, CheckCircle, Truck, Upload,
   Tag, Settings, LogOut, Key, Hash, LayoutGrid, Database,
-  Eye, Droplets, Thermometer, HelpCircle
+  Eye, Droplets, Thermometer, HelpCircle, Wifi, WifiOff
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -17,6 +17,24 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('inventory');
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState(null);
+  const [dbStatus, setDbStatus] = useState('connecting'); // connecting, online, offline
+
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const { error } = await supabase.from('products').select('id', { count: 'exact', head: true }).limit(1);
+        if (error) throw error;
+        setDbStatus('online');
+      } catch (err) {
+        console.error("DB Status Error:", err);
+        setDbStatus('offline');
+      }
+    };
+
+    checkConnection();
+    const interval = setInterval(checkConnection, 30000); // Check every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -267,7 +285,21 @@ const AdminDashboard = () => {
       {/* Sidebar */}
       <aside className="w-64 bg-charcoal text-ivory flex flex-col sticky top-0 h-screen shrink-0 shadow-2xl z-40">
         <div className="p-10 border-b border-white/10">
-          <Link to="/" className="text-3xl font-serif italic tracking-widest uppercase block">Kashume</Link>
+          <div className="flex justify-between items-start">
+            <Link to="/" className="text-3xl font-serif italic tracking-widest uppercase block">Kashume</Link>
+            <div className={`mt-1 flex flex-col items-center gap-1 group relative`}>
+              {dbStatus === 'online' ? (
+                <Wifi size={14} className="text-green-500" />
+              ) : dbStatus === 'offline' ? (
+                <WifiOff size={14} className="text-red-500 animate-pulse" />
+              ) : (
+                <Wifi size={14} className="text-gold/40 animate-pulse" />
+              )}
+              <span className="absolute -top-8 bg-black/80 text-[6px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-widest whitespace-nowrap">
+                DB: {dbStatus}
+              </span>
+            </div>
+          </div>
           <div className="flex items-center gap-2 mt-3">
             <div className="w-2 h-2 bg-gold rounded-full animate-pulse" />
             <p className="text-[8px] uppercase tracking-[0.4em] text-gold font-bold">Command Center</p>

@@ -11,59 +11,23 @@ const Bundles = () => {
   const [bundles, setBundles] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fallbackBundles = [
-    {
-      id: 'discovery-set',
-      name: "The Discovery Trio",
-      price: 5999,
-      originalPrice: 7097,
-      description: "Experience the complete Kashume library. This curated set includes INTERO: HIM, HER, and ONE (50ml each), offering a full spectrum of our olfactory journey.",
-      image: "/images/DATA 1.O/Bundles/1.png",
-      items: ["INTERO: HIM (50ml)", "INTERO: HER (50ml)", "INTERO: ONE (50ml)"],
-      benefit: "Save Rs. 1098 + Free Shipping"
-    },
-    {
-      id: 'his-her-duo',
-      name: "His & Her Duo",
-      price: 3999,
-      originalPrice: 4498,
-      description: "A perfect harmony of masculine and feminine energies. INTERO: HIM and INTERO: HER, designed to complement each other in every setting.",
-      image: "/images/DATA 1.O/Bundles/HIM - HER.png",
-      items: ["INTERO: HIM (50ml)", "INTERO: HER (50ml)"],
-      benefit: "Free Shipping"
-    },
-    {
-      id: 'one-him-duo',
-      name: "One & Him Duo",
-      price: 4399,
-      originalPrice: 4898,
-      description: "The bold intensity of ONE meets the classic sophistication of HIM. A versatile pairing for the modern individual.",
-      image: "/images/DATA 1.O/Bundles/ONE - HIM.png",
-      items: ["INTERO: ONE (50ml)", "INTERO: HIM (50ml)"],
-      benefit: "Free Shipping"
-    },
-    {
-      id: 'one-her-duo',
-      name: "One & Her Duo",
-      price: 4299,
-      originalPrice: 4798,
-      description: "The ethereal radiance of ONE combined with the floral elegance of HER. A truly divine olfactory experience.",
-      image: "/images/DATA 1.O/Bundles/ONE - HER.png",
-      items: ["INTERO: ONE (50ml)", "INTERO: HER (50ml)"],
-      benefit: "Free Shipping"
-    }
-  ];
-
   useEffect(() => {
     const fetchBundles = async () => {
+      // Don't fetch if Supabase is not configured
+      if (import.meta.env.VITE_SUPABASE_URL.includes('placeholder')) {
+        setBundles([]);
+        setLoading(false);
+        return;
+      }
+
       try {
         const { data, error } = await supabase
           .from('products')
           .select('*')
           .eq('is_bundle', true);
 
-        if (error || !data || data.length === 0) {
-          setBundles(fallbackBundles);
+        if (error || !data) {
+          setBundles([]);
         } else {
           // Transform products that are bundles to the bundle format
           const dynamicBundles = data.map(p => ({
@@ -79,7 +43,7 @@ const Bundles = () => {
           setBundles(dynamicBundles);
         }
       } catch (err) {
-        setBundles(fallbackBundles);
+        setBundles([]);
       } finally {
         setLoading(false);
       }

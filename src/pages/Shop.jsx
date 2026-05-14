@@ -9,35 +9,11 @@ const Shop = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fallbackProducts = [
-    {
-      id: 'intero-him',
-      name: "INTERO: HIM",
-      price: 2299,
-      images: ["/images/DATA 1.O/INTERO HIM/Mainn.jpeg"],
-      category: "Aromatic"
-    },
-    {
-      id: 'intero-her',
-      name: "INTERO: HER",
-      price: 2199,
-      images: ["/images/DATA 1.O/INTERO HER/main.png"],
-      category: "Floral"
-    },
-    {
-      id: 'intero-one',
-      name: "INTERO: ONE",
-      price: 2599,
-      images: ["/images/DATA 1.O/INTERO ONE/Main.png"],
-      category: "Oriental Floral"
-    }
-  ];
-
   useEffect(() => {
     const fetchProducts = async () => {
-      // Instant fallback if Supabase is not configured to avoid network timeout delay
+      // Don't fetch if Supabase is not configured
       if (import.meta.env.VITE_SUPABASE_URL.includes('placeholder')) {
-        setProducts(fallbackProducts);
+        setProducts([]);
         setLoading(false);
         return;
       }
@@ -49,13 +25,13 @@ const Shop = () => {
           .eq('is_bundle', false)
           .order('created_at', { ascending: false });
 
-        if (error || !data || data.length === 0) {
-          setProducts(fallbackProducts);
+        if (error || !data) {
+          setProducts([]);
         } else {
           setProducts(data);
         }
       } catch (err) {
-        setProducts(fallbackProducts);
+        setProducts([]);
       } finally {
         setLoading(false);
       }

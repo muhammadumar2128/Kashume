@@ -9,40 +9,12 @@ const NewArrivals = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Updated fallback data with correct image names
-  const fallbackProducts = [
-    {
-      id: "intero-him",
-      name: "INTERO: HIM",
-      category: "Aromatic",
-      price: 2299,
-      image: "/images/DATA 1.O/INTERO HIM/Mainn.jpeg",
-      notes: ["Apple", "Italian Lemon", "Sicilian Bergamot"]
-    },
-    {
-      id: "intero-her",
-      name: "INTERO: HER",
-      category: "Floral",
-      price: 2199,
-      image: "/images/DATA 1.O/INTERO HER/main.png",
-      notes: ["Orange Blossom", "Bergamot", "Tuberose"]
-    },
-    {
-      id: "intero-one",
-      name: "INTERO: ONE",
-      category: "Oriental Floral",
-      price: 2599,
-      image: "/images/DATA 1.O/INTERO ONE/Main.png",
-      notes: ["Saffron", "Jasmine", "Amberwood"]
-    }
-  ];
-
   useEffect(() => {
     const fetchNewArrivals = async () => {
-      // Instant fallback if Supabase is not configured or using placeholder
+      // Don't fetch if Supabase is not configured
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-        setProducts(fallbackProducts);
+        setProducts([]);
         setLoading(false);
         return;
       }
@@ -55,8 +27,8 @@ const NewArrivals = () => {
           .eq('is_bundle', false)
           .limit(3);
 
-        if (error || !data || data.length === 0) {
-          setProducts(fallbackProducts);
+        if (error || !data) {
+          setProducts([]);
         } else {
           // Map database structure to component structure if needed
           setProducts(data.map(p => ({
@@ -69,7 +41,7 @@ const NewArrivals = () => {
           })));
         }
       } catch (err) {
-        setProducts(fallbackProducts);
+        setProducts([]);
       } finally {
         setLoading(false);
       }

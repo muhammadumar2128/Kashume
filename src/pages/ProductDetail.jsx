@@ -13,63 +13,11 @@ const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fallbackProducts = [
-    {
-      id: 'intero-him',
-      name: "INTERO: HIM",
-      price: 2299,
-      currency: "PKR",
-      category: "Aromatic",
-      description: "Intero: Him by Kashume is a Aromatic fragrance for men. Top notes are Apple, Italian Lemon, Sicilian Bergamot and Star Anise; middle notes are Plum, Orange Blossom and Cardamon; base notes are Musk, Amber, Driftwood and Moss.",
-      images: ["/images/DATA 1.O/INTERO HIM/Mainn.jpeg", "/images/DATA 1.O/INTERO HIM/with boxx.jpeg"],
-      scent_notes: {
-        top: ["Apple", "Italian Lemon", "Sicilian Bergamot", "Star Anise"],
-        heart: ["Plum", "Orange Blossom", "Cardamon"],
-        base: ["Musk", "Amber", "Driftwood", "Moss"]
-      },
-      performance: { sillage: "Strong", longevity: "Long Lasting" },
-      shipping: "All Over Pakistan Product can take 3-4 days to deliver. Delivery charges are Rs.199. Free delivery for orders above 3000."
-    },
-    {
-      id: 'intero-her',
-      name: "INTERO: HER",
-      price: 2199,
-      currency: "PKR",
-      category: "Floral",
-      description: "INTERO: HER by Kashume is a Floral fragrance for women. Top notes are Orange Blossom and Bergamot; middle notes are Tuberose and Indian Jasmine; base notes are Madagascar Vanilla, White Musk and Virginian Cedar. Unlock Your Inner Goddess with INTERO: HER by Kashume, a captivating Aromatic fragrance that empowers women to be their best selves!",
-      images: ["/images/DATA 1.O/INTERO HER/main.png", "/images/DATA 1.O/INTERO HER/with box.png"],
-      scent_notes: {
-        top: ["Orange Blossom", "Bergamot"],
-        heart: ["Tuberose", "Indian Jasmine"],
-        base: ["Madagascar Vanilla", "White Musk", "Virginian Cedar"]
-      },
-      performance: { sillage: "Moderate", longevity: "Long Lasting" },
-      shipping: "All Over Pakistan Product can take 3-4 days to deliver. Delivery charges are Rs.199. Free delivery for orders above 3000."
-    },
-    {
-      id: 'intero-one',
-      name: "INTERO: ONE",
-      price: 2599,
-      currency: "PKR",
-      category: "Oriental Floral",
-      description: "INTERO: ONE by KASHUME is a Oriental Floral fragrance for women and men. Top notes are Saffron and Jasmine; middle notes are Amberwood, Ambergris and Hedione; base notes are Fir Resin, Cedar, Sugar, Ambroxan and Oakmoss.",
-      images: ["/images/DATA 1.O/INTERO ONE/Main.png", "/images/DATA 1.O/INTERO ONE/with box.png"],
-      scent_notes: {
-        top: ["Saffron", "Jasmine"],
-        heart: ["Amberwood", "Ambergris", "Hedione"],
-        base: ["Fir Resin", "Cedar", "Sugar", "Ambroxan", "Oakmoss"]
-      },
-      performance: { sillage: "Strong", longevity: "Long Lasting" },
-      shipping: "All Over Pakistan Product can take 3-4 days to deliver. Delivery charges are Rs.199. Free delivery for orders above 3000."
-    }
-  ];
-
   useEffect(() => {
     const fetchProduct = async () => {
-      // Instant fallback if Supabase is not configured
+      // Don't fetch if Supabase is not configured
       if (import.meta.env.VITE_SUPABASE_URL.includes('placeholder')) {
-        const found = fallbackProducts.find(p => p.id === id);
-        setProduct(found);
+        setProduct(null);
         setLoading(false);
         return;
       }
@@ -82,14 +30,12 @@ const ProductDetail = () => {
           .single();
 
         if (error || !data) {
-          const found = fallbackProducts.find(p => p.id === id);
-          setProduct(found);
+          setProduct(null);
         } else {
           setProduct(data);
         }
       } catch (err) {
-        const found = fallbackProducts.find(p => p.id === id);
-        setProduct(found);
+        setProduct(null);
       } finally {
         setLoading(false);
       }
