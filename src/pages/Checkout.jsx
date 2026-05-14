@@ -8,7 +8,7 @@ import { CheckCircle2, Loader2, ArrowRight, ShoppingBag } from 'lucide-react';
 
 const Checkout = () => {
   const { state, calculateTotals, dispatch } = useCart();
-  const { total } = calculateTotals();
+  const { subtotal, total, shipping } = calculateTotals();
   const navigate = useNavigate();
   
   const [loading, setLoading] = useState(false);
@@ -243,11 +243,13 @@ const Checkout = () => {
             <div className="space-y-4 pt-8 border-t-2 border-charcoal/10">
               <div className="flex justify-between text-xs font-bold">
                 <span className="text-charcoal/60 uppercase tracking-widest">Subtotal</span>
-                <span className="text-charcoal">Rs. {total}</span>
+                <span className="text-charcoal">Rs. {subtotal}</span>
               </div>
               <div className="flex justify-between text-xs font-bold">
                 <span className="text-charcoal/60 uppercase tracking-widest">Shipping Protocol</span>
-                <span className="text-gold uppercase tracking-widest font-black">Complimentary</span>
+                <span className="text-gold uppercase tracking-widest font-black">
+                  {shipping === 0 ? 'Complimentary' : `Rs. ${shipping}`}
+                </span>
               </div>
               <div className="flex justify-between text-2xl font-serif italic pt-6 border-t border-charcoal/5 text-charcoal font-bold">
                 <span>Final Value</span>

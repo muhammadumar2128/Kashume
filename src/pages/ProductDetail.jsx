@@ -5,6 +5,7 @@ import Navbar from '../components/layout/Navbar';
 import { supabase } from '../lib/supabaseClient';
 import { ShoppingBag, Truck, ShieldCheck, Clock, Phone } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import LazyImage from '../components/ui/LazyImage';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -116,15 +117,10 @@ const ProductDetail = () => {
             className="relative"
           >
             <div className="aspect-[4/5] bg-white shadow-2xl shadow-charcoal/10 ring-1 ring-charcoal/15 rounded-3xl overflow-hidden">
-              <motion.img 
-                initial={{ scale: 1.1, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ 
-                  scale: { duration: 1.8, ease: [0.22, 1, 0.36, 1] },
-                  opacity: { duration: 0.8 }
-                }}
+              <LazyImage 
                 src={product.images?.[0]} 
                 alt={product.name} 
+                containerClassName="w-full h-full"
                 className="w-full h-full object-cover" 
               />
             </div>

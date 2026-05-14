@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useCart } from '../../context/CartContext';
 import { ShoppingBag } from 'lucide-react';
+import LazyImage from '../ui/LazyImage';
 
 const ProductCard = ({ product, index, isNew = false }) => {
   const { dispatch } = useCart();
@@ -30,9 +31,10 @@ const ProductCard = ({ product, index, isNew = false }) => {
     >
       <Link to={`/product/${product.id}`} className="block">
         <div className="relative aspect-[4/5] w-full max-w-[240px] mx-auto rounded-2xl overflow-hidden mb-4 md:mb-8 bg-white transition-all duration-700 group-hover:shadow-2xl group-hover:shadow-charcoal/10 ring-1 ring-charcoal/15">
-          <img 
+          <LazyImage 
             src={productImage} 
             alt={product.name}
+            containerClassName="w-full h-full"
             className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-110"
           />
           

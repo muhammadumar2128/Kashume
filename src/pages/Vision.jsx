@@ -2,6 +2,7 @@ import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import Navbar from '../components/layout/Navbar';
 import { Link } from 'react-router-dom';
+import LazyImage from '../components/ui/LazyImage';
 
 const ChapterSection = ({ title, subtitle, description, image, index, isReversed }) => {
   const ref = useRef(null);
@@ -16,9 +17,10 @@ const ChapterSection = ({ title, subtitle, description, image, index, isReversed
         transition={{ duration: 2.5, ease: [0.22, 1, 0.36, 1] }}
         className="w-full md:w-1/2 aspect-[4/5] bg-white shadow-2xl shadow-charcoal/5 ring-1 ring-charcoal/5 overflow-hidden relative rounded-2xl"
       >
-        <motion.img 
+        <LazyImage 
           src={image} 
           alt={title} 
+          containerClassName="w-full h-full"
           className="w-full h-full object-cover grayscale-[20%]"
         />
       </motion.div>

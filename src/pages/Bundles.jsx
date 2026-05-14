@@ -4,6 +4,7 @@ import Navbar from '../components/layout/Navbar';
 import { ShoppingBag, Star, Info, Loader2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabaseClient';
+import LazyImage from '../components/ui/LazyImage';
 
 const Bundles = () => {
   const { dispatch } = useCart();
@@ -125,9 +126,10 @@ const Bundles = () => {
                 className="bg-white p-8 md:p-12 shadow-sm ring-1 ring-charcoal/5 flex flex-col md:flex-row gap-10 items-center rounded-3xl overflow-hidden"
               >
                 <div className="w-full md:w-1/2 aspect-[4/5] overflow-hidden bg-[#F5F2ED] flex items-center justify-center p-4 rounded-2xl">
-                  <img 
+                  <LazyImage 
                     src={bundle.image} 
                     alt={bundle.name} 
+                    containerClassName="w-full h-full"
                     className="w-full h-full object-contain hover:scale-105 transition-transform duration-[2s]"
                   />
                 </div>

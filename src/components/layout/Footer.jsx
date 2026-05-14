@@ -37,7 +37,10 @@ const Footer = () => {
       </div>
 
       <div className="container mx-auto max-w-7xl mt-20 pt-8 border-t border-earth/30 flex flex-col md:flex-row justify-between items-center text-xs font-sans text-ivory/40">
-        <p>&copy; {new Date().getFullYear()} Kashume. All rights reserved.</p>
+        <div className="flex flex-col md:flex-row gap-2 md:gap-8 items-center">
+          <p>&copy; {new Date().getFullYear()} Kashume. All rights reserved.</p>
+          <p>Powered by <a href="https://lunarai.agency/" target="_blank" rel="noopener noreferrer" className="hover:text-ivory transition-colors">LunarAi</a></p>
+        </div>
         <div className="flex gap-4 mt-4 md:mt-0">
           <a href="#" className="hover:text-ivory transition-colors">Instagram</a>
         </div>

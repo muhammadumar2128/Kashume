@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 
 const CartDrawer = ({ isOpen, onClose }) => {
   const { state, dispatch, calculateTotals } = useCart();
-  const { total, savings, appliedBundles } = calculateTotals();
+  const { subtotal, total, shipping, savings, appliedBundles } = calculateTotals();
 
   return (
     <AnimatePresence>
@@ -82,7 +82,7 @@ const CartDrawer = ({ isOpen, onClose }) => {
                 <div className="space-y-4 mb-8">
                   <div className="flex justify-between text-sm font-light">
                     <span>Subtotal</span>
-                    <span>Rs. {total + savings}</span>
+                    <span>Rs. {subtotal + savings}</span>
                   </div>
                   {savings > 0 && (
                     <div className="flex justify-between text-sm text-gold">
@@ -90,6 +90,12 @@ const CartDrawer = ({ isOpen, onClose }) => {
                       <span>-Rs. {savings}</span>
                     </div>
                   )}
+                  <div className="flex justify-between text-sm font-light">
+                    <span>Shipping</span>
+                    <span className={shipping === 0 ? 'text-gold italic' : ''}>
+                      {shipping === 0 ? 'Free' : `Rs. ${shipping}`}
+                    </span>
+                  </div>
                   <div className="flex justify-between text-xl font-serif pt-4 border-t border-earth/5">
                     <span>Total</span>
                     <span>Rs. {total}</span>

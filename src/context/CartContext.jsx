@@ -75,7 +75,9 @@ export const CartProvider = ({ children }) => {
       subtotal += parseFloat(item.price);
     });
 
-    return { total: subtotal, savings, appliedBundles };
+    const shipping = subtotal < 3000 && subtotal > 0 ? 199 : 0;
+
+    return { subtotal, total: subtotal + shipping, shipping, savings, appliedBundles };
   };
 
   return (
