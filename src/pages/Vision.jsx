@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import Navbar from '../components/layout/Navbar';
 import { Link } from 'react-router-dom';
 import LazyImage from '../components/ui/LazyImage';
+import SEO from '../components/ui/SEO';
 
 const ChapterSection = ({ title, subtitle, description, image, index, isReversed }) => {
   const ref = useRef(null);
@@ -80,6 +81,10 @@ const Vision = () => {
 
   return (
     <main ref={containerRef} className="relative bg-[#FAF9F6] overflow-x-hidden font-light">
+      <SEO 
+        title="Our Vision | Artistic Manifesto" 
+        description="A manifesto of scent, soul, and absolute botanical integrity. Discover the philosophy behind Kashume's artisanal distillations."
+      />
       <Navbar variant="light" />
       
       {/* Cinematic Hero Section */}
@@ -111,6 +116,7 @@ const Vision = () => {
             src="/images/DATA 1.O/our vision hero section.png" 
             className="w-full h-full object-cover grayscale"
             alt="Vision Background"
+            fetchpriority="high"
           />
         </motion.div>
 

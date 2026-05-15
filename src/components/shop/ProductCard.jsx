@@ -25,12 +25,12 @@ const ProductCard = ({ product, index, isNew = false }) => {
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.8, delay: index * 0.1 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.8, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
       className="group"
     >
       <Link to={`/product/${product.id}`} className="block">
-        <div className="relative aspect-[4/5] w-full max-w-[240px] mx-auto rounded-2xl overflow-hidden mb-4 md:mb-8 bg-white transition-all duration-700 group-hover:shadow-2xl group-hover:shadow-charcoal/10 ring-1 ring-charcoal/15">
+        <div className="relative aspect-[4/5] w-full max-w-[280px] mx-auto rounded-xl md:rounded-2xl overflow-hidden mb-3 md:mb-8 bg-white transition-all duration-700 group-hover:shadow-2xl group-hover:shadow-charcoal/10 ring-1 ring-charcoal/15">
           <LazyImage 
             src={productImage} 
             alt={product.name}
@@ -38,21 +38,37 @@ const ProductCard = ({ product, index, isNew = false }) => {
             className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-110"
           />
           
-          {/* Add to Cart Overlay */}
+          {/* Add to Cart Overlay - Desktop & Tablet */}
           <div className="absolute inset-0 bg-charcoal/0 group-hover:bg-charcoal/20 transition-all duration-700 flex items-end justify-center pb-6 z-10">
             <button 
               onClick={handleAddToCart}
-              className="translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 bg-white text-charcoal px-4 py-2 md:px-6 md:py-3 rounded-full flex items-center gap-2 text-[10px] md:text-xs font-bold uppercase tracking-widest hover:bg-gold hover:text-white shadow-xl transform active:scale-95"
+              className="translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 bg-white text-charcoal px-6 py-3 rounded-full flex items-center gap-2 text-xs font-bold uppercase tracking-widest hover:bg-gold hover:text-white shadow-xl transform active:scale-95 hidden md:flex"
             >
               <ShoppingBag size={14} />
               Add to Cart
+            </button>
+            
+            {/* Mobile Quick Add - Constant Visibility or on Tap */}
+            <button 
+              onClick={handleAddToCart}
+              className="md:hidden absolute bottom-3 right-3 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-charcoal shadow-lg active:scale-90 transition-transform z-20"
+            >
+              <ShoppingBag size={16} />
             </button>
           </div>
 
           {isNew && (
             <div className="absolute top-2 left-2 md:top-4 md:left-4 z-20">
-              <span className="text-[6px] md:text-[8px] bg-charcoal text-ivory px-1.5 md:px-2 py-0.5 md:py-1 uppercase tracking-widest">
+              <span className="text-[6px] md:text-[8px] bg-charcoal text-ivory px-1.5 md:px-2 py-0.5 md:py-1 uppercase tracking-widest font-bold rounded-sm shadow-sm">
                 New
+              </span>
+            </div>
+          )}
+
+          {product.gender && (
+            <div className="absolute top-2 right-2 md:top-4 md:right-4 z-20">
+              <span className="text-[6px] md:text-[8px] bg-gold/90 text-charcoal px-1.5 md:px-2 py-0.5 md:py-1 uppercase tracking-widest font-black rounded-sm shadow-sm backdrop-blur-sm">
+                {product.gender}
               </span>
             </div>
           )}

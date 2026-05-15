@@ -17,6 +17,14 @@ const SplitScrollHero = () => {
     offset: ["start start", "end start"]
   });
 
+  // Preload hero images on mount
+  useEffect(() => {
+    heroImages.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, []);
+
   const textY = useTransform(scrollYProgress, [0, 1], ["0%", "15%"]);
   const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "-5%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
@@ -105,6 +113,7 @@ const SplitScrollHero = () => {
                 transition={{ duration: 6, ease: "linear" }}
                 src={heroImages[currentImageIndex]} 
                 alt="Kashume Hero" 
+                fetchpriority={currentImageIndex === 0 ? "high" : "auto"}
                 className="w-full h-full object-cover object-center"
               />
               <div className="absolute inset-0 bg-charcoal/[0.02]" />

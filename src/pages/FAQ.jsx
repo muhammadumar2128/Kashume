@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/layout/Navbar';
 import { supabase } from '../lib/supabaseClient';
 import { ChevronDown, HelpCircle } from 'lucide-react';
+import SEO from '../components/ui/SEO';
 
 const FAQItem = ({ faq, isOpen, toggle }) => {
   return (
@@ -62,6 +63,10 @@ const FAQ = () => {
 
   return (
     <main className="min-h-screen bg-[#FAF9F6] font-light">
+      <SEO 
+        title="Archives | FAQ" 
+        description="Frequently asked questions about Kashume's essences, shipping protocols, and artisanal distillation process."
+      />
       <Navbar />
       
       {/* Header */}

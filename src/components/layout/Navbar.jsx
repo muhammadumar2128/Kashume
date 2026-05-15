@@ -29,7 +29,8 @@ const Navbar = ({ variant = 'dark' }) => {
 
   const navLinks = [
     { name: 'New Arrivals', path: '/new-arrivals' },
-    { name: 'Essences', path: '/shop' },
+    { name: 'All Products', path: '/shop' },
+    { name: 'Bundles', path: '/bundles' },
     { name: 'Vision', path: '/vision' },
   ];
 
@@ -105,25 +106,37 @@ const Navbar = ({ variant = 'dark' }) => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
               className="md:hidden bg-[#F5F2ED] border-t border-charcoal/5 overflow-hidden"
             >
               <div className="flex flex-col items-center py-12 gap-8">
-                {navLinks.map((link) => (
-                  <Link 
-                    key={link.name} 
-                    to={link.path} 
-                    className="text-xs uppercase tracking-[0.4em] text-charcoal hover:text-gold transition-colors"
+                {navLinks.map((link, i) => (
+                  <motion.div
+                    key={link.name}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.1 + 0.2 }}
                   >
-                    {link.name}
-                  </Link>
+                    <Link 
+                      to={link.path} 
+                      className="text-xs uppercase tracking-[0.4em] text-charcoal hover:text-gold transition-colors font-bold"
+                    >
+                      {link.name}
+                    </Link>
+                  </motion.div>
                 ))}
-                <Link 
-                  to="/admin" 
-                  className="text-xs uppercase tracking-[0.4em] text-gold/60 italic hover:text-gold transition-colors"
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: navLinks.length * 0.1 + 0.2 }}
                 >
-                  Command
-                </Link>
+                  <Link 
+                    to="/admin" 
+                    className="text-xs uppercase tracking-[0.4em] text-gold/60 italic hover:text-gold transition-colors font-bold"
+                  >
+                    Command
+                  </Link>
+                </motion.div>
               </div>
             </motion.div>
           )}

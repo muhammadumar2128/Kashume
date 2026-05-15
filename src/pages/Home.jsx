@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabaseClient';
 import { motion } from 'framer-motion';
 import { ShoppingBag, Star, Check } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import SEO from '../components/ui/SEO';
 
 const Home = () => {
   const [products, setProducts] = useState([]);

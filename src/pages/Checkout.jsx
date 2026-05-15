@@ -17,8 +17,7 @@ const Checkout = () => {
 
   const [formData, setFormData] = useState({
     email: '',
-    firstName: '',
-    lastName: '',
+    fullName: '',
     address: '',
     city: '',
     phone: '',
@@ -39,7 +38,7 @@ const Checkout = () => {
     try {
       const orderPayload = {
         customer_email: formData.email,
-        customer_name: `${formData.firstName} ${formData.lastName}`,
+        customer_name: formData.fullName,
         shipping_address: `${formData.address}, ${formData.city}`,
         phone: formData.phone,
         items: state.items,
@@ -129,22 +128,13 @@ const Checkout = () => {
 
             <section className="space-y-8">
               <h3 className="text-xs uppercase tracking-[0.3em] font-black text-gold border-b-2 border-gold/30 pb-4">Shipping Protocol</h3>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-6">
                 <input 
                   type="text" 
-                  name="firstName"
-                  placeholder="First Name" 
+                  name="fullName"
+                  placeholder="Full Name" 
                   required
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                  className="w-full bg-[#F5F2ED] border-b-2 border-charcoal/40 p-4 text-sm focus:border-gold outline-none transition-all font-bold text-charcoal placeholder:text-charcoal/40"
-                />
-                <input 
-                  type="text" 
-                  name="lastName"
-                  placeholder="Last Name" 
-                  required
-                  value={formData.lastName}
+                  value={formData.fullName}
                   onChange={handleInputChange}
                   className="w-full bg-[#F5F2ED] border-b-2 border-charcoal/40 p-4 text-sm focus:border-gold outline-none transition-all font-bold text-charcoal placeholder:text-charcoal/40"
                 />

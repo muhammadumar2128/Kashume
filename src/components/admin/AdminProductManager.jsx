@@ -53,6 +53,9 @@ const AdminDashboard = () => {
   const [promos, setPromos] = useState([]);
   const [faqs, setFaqs] = useState([]);
   
+  // Pending orders count
+  const pendingCount = orders.filter(o => o.status === 'pending').length;
+  
   // UI States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -66,6 +69,7 @@ const AdminDashboard = () => {
     description: '',
     stock: 0,
     category_id: '',
+    gender: 'Unisex',
     is_new_arrival: false,
     is_bundle: false,
     original_price: '',
@@ -284,15 +288,21 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-[#F5F2ED] flex flex-col md:flex-row font-sans text-charcoal overflow-x-hidden">
       {/* Mobile Top Bar */}
-      <div className="md:hidden bg-charcoal text-ivory p-4 flex justify-between items-center sticky top-0 z-50 shadow-lg">
+      <div className="md:hidden bg-charcoal text-ivory p-4 flex justify-between items-center sticky top-0 z-50 shadow-lg border-b border-white/5">
         <Link to="/" className="text-xl font-serif italic tracking-widest uppercase">Kashume</Link>
-        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-full">
+            {dbStatus === 'online' ? <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" /> : <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />}
+            <span className="text-[8px] uppercase tracking-widest opacity-60 font-bold">{dbStatus}</span>
+          </div>
+          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 hover:bg-white/10 rounded-lg transition-all duration-300 active:scale-90">
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {/* Sidebar - Desktop */}
-      <aside className="hidden md:flex w-64 bg-charcoal text-ivory flex-col sticky top-0 h-screen shrink-0 shadow-2xl z-40">
+      <aside className="hidden md:flex w-64 bg-charcoal text-ivory flex-col sticky top-0 h-screen shrink-0 shadow-2xl z-40 border-r border-white/5">
         <div className="p-10 border-b border-white/10">
           <div className="flex justify-between items-start">
             <Link to="/" className="text-3xl font-serif italic tracking-widest uppercase block">Kashume</Link>
@@ -319,7 +329,7 @@ const AdminDashboard = () => {
           {[
             { id: 'inventory', label: 'Inventory', icon: Database },
             { id: 'categories', label: 'Botanical Library', icon: LayoutGrid },
-            { id: 'orders', label: 'Order Ledger', icon: ShoppingBag },
+            { id: 'orders', label: 'Order Ledger', icon: ShoppingBag, count: pendingCount },
             { id: 'promos', label: 'Scent Tokens', icon: Tag },
             { id: 'faqs', label: 'Archives (FAQ)', icon: HelpCircle },
             { id: 'settings', label: 'Sanctum', icon: Settings },
@@ -330,13 +340,22 @@ const AdminDashboard = () => {
                 setActiveTab(tab.id);
                 setIsMobileMenuOpen(false);
               }}
-              className={`w-full flex items-center gap-4 px-5 py-4 rounded-lg text-[10px] uppercase tracking-[0.2em] transition-all duration-500 ${
+              className={`w-full flex items-center justify-between gap-4 px-5 py-4 rounded-lg text-[10px] uppercase tracking-[0.2em] transition-all duration-500 ${
                 activeTab === tab.id 
                 ? 'bg-gold text-charcoal font-bold shadow-lg shadow-gold/20 translate-x-2' 
                 : 'hover:bg-white/10 text-ivory/70'
               }`}
             >
-              <tab.icon size={16} strokeWidth={activeTab === tab.id ? 2.5 : 1.5} /> {tab.label}
+              <div className="flex items-center gap-4">
+                <tab.icon size={16} strokeWidth={activeTab === tab.id ? 2.5 : 1.5} /> {tab.label}
+              </div>
+              {tab.id === 'orders' && tab.count > 0 && (
+                <span className={`flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-black ${
+                  activeTab === 'orders' ? 'bg-charcoal text-gold' : 'bg-gold text-charcoal'
+                }`}>
+                  {tab.count}
+                </span>
+              )}
             </button>
           ))}
         </nav>
@@ -380,7 +399,7 @@ const AdminDashboard = () => {
                 {[
                   { id: 'inventory', label: 'Inventory', icon: Database },
                   { id: 'categories', label: 'Botanical Library', icon: LayoutGrid },
-                  { id: 'orders', label: 'Order Ledger', icon: ShoppingBag },
+                  { id: 'orders', label: 'Order Ledger', icon: ShoppingBag, count: pendingCount },
                   { id: 'promos', label: 'Scent Tokens', icon: Tag },
                   { id: 'faqs', label: 'Archives (FAQ)', icon: HelpCircle },
                   { id: 'settings', label: 'Sanctum', icon: Settings },
@@ -391,11 +410,18 @@ const AdminDashboard = () => {
                       setActiveTab(tab.id);
                       setIsMobileMenuOpen(false);
                     }}
-                    className={`w-full flex items-center gap-4 px-5 py-4 rounded-lg text-[10px] uppercase tracking-[0.2em] transition-all ${
+                    className={`w-full flex items-center justify-between gap-4 px-5 py-4 rounded-lg text-[10px] uppercase tracking-[0.2em] transition-all ${
                       activeTab === tab.id ? 'bg-gold text-charcoal font-bold' : 'text-ivory/70'
                     }`}
                   >
-                    <tab.icon size={16} /> {tab.label}
+                    <div className="flex items-center gap-4">
+                      <tab.icon size={16} /> {tab.label}
+                    </div>
+                    {tab.id === 'orders' && tab.count > 0 && (
+                      <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-black bg-gold text-charcoal">
+                        {tab.count}
+                      </span>
+                    )}
                   </button>
                 ))}
               </nav>
@@ -417,7 +443,14 @@ const AdminDashboard = () => {
       <main className="flex-grow p-4 md:p-12 overflow-y-auto bg-white/50">
         <header className="mb-8 md:mb-16 flex flex-col md:flex-row justify-between items-start md:items-end border-b border-charcoal/20 pb-8 gap-6">
           <div>
-            <h2 className="text-3xl md:text-5xl font-serif italic capitalize tracking-tight text-charcoal">{activeTab}</h2>
+            <h2 className="text-3xl md:text-5xl font-serif italic capitalize tracking-tight text-charcoal flex items-center gap-4">
+              {activeTab}
+              {activeTab === 'orders' && pendingCount > 0 && (
+                <span className="bg-gold text-charcoal text-sm font-black px-3 py-1 rounded-full flex items-center gap-2">
+                  <Clock size={16} /> {pendingCount} Pending
+                </span>
+              )}
+            </h2>
             <p className="text-[8px] md:text-[10px] uppercase tracking-[0.4em] text-charcoal/80 mt-2 md:mt-4 flex items-center gap-2">
               <span className="w-4 md:w-8 h-[1px] bg-charcoal/60" /> Governing the House of Kashume
             </p>
@@ -447,6 +480,7 @@ const AdminDashboard = () => {
                     <tr>
                       <th className="p-4 md:p-6">The Essence</th>
                       <th className="p-4 md:p-6 hidden lg:table-cell">Collection</th>
+                      <th className="p-4 md:p-6 hidden sm:table-cell">Target</th>
                       <th className="p-4 md:p-6">Value</th>
                       <th className="p-4 md:p-6">Stock</th>
                       <th className="p-4 md:p-6 text-right">Sanctum</th>
@@ -480,6 +514,7 @@ const AdminDashboard = () => {
                           </div>
                         </td>
                         <td className="p-4 md:p-6 text-[9px] md:text-[10px] uppercase tracking-widest text-charcoal font-bold hidden lg:table-cell">{p.categories?.name}</td>
+                        <td className="p-4 md:p-6 text-[9px] md:text-[10px] uppercase tracking-widest text-gold font-bold hidden sm:table-cell">{p.gender}</td>
                         <td className="p-4 md:p-6 font-sans font-bold text-charcoal text-[10px] md:text-sm whitespace-nowrap">Rs. {p.price}</td>
                         <td className="p-4 md:p-6">
                           <div className="flex items-center gap-2">
@@ -533,6 +568,7 @@ const AdminDashboard = () => {
                     <tr>
                       <th className="p-4 md:p-6">Order ID</th>
                       <th className="p-4 md:p-6">Client</th>
+                      <th className="p-4 md:p-6">Address</th>
                       <th className="p-4 md:p-6">Value</th>
                       <th className="p-4 md:p-6">Status</th>
                       <th className="p-4 md:p-6 text-right">Protocol</th>
@@ -542,7 +578,14 @@ const AdminDashboard = () => {
                     {orders.map(o => (
                       <tr key={o.id} className="hover:bg-[#F5F2ED]/50 text-charcoal">
                         <td className="p-4 md:p-6 font-mono text-[9px] md:text-[10px] text-charcoal/60 font-bold">#{o.id.slice(0,8)}</td>
-                        <td className="p-4 md:p-6 font-medium max-w-[120px] md:max-w-none truncate">{o.customer_email}</td>
+                        <td className="p-4 md:p-6 font-medium">
+                          <div className="font-bold text-sm">{o.customer_name}</div>
+                          <div className="text-[10px] opacity-60">{o.customer_email}</div>
+                          <div className="text-[10px] opacity-60 font-mono">{o.phone}</div>
+                        </td>
+                        <td className="p-4 md:p-6 font-medium max-w-[200px]">
+                          <div className="text-[10px] md:text-xs leading-relaxed italic">{o.shipping_address}</div>
+                        </td>
                         <td className="p-4 md:p-6 font-sans font-bold whitespace-nowrap">Rs. {o.total}</td>
                         <td className="p-4 md:p-6">
                           <span className={`text-[7px] md:text-[8px] uppercase tracking-widest px-2 md:px-3 py-1 md:py-1.5 rounded-full font-bold whitespace-nowrap ${
@@ -690,6 +733,14 @@ const AdminDashboard = () => {
                         <select className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none transition-all bg-[#F5F2ED] font-bold" value={formData.category_id} onChange={e => setFormData({...formData, category_id: e.target.value})} required>
                           <option value="">Select Collection</option>
                           {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Target Gender</label>
+                        <select className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none transition-all bg-[#F5F2ED] font-bold" value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})} required>
+                          <option value="Men">Men</option>
+                          <option value="Women">Women</option>
+                          <option value="Unisex">Unisex</option>
                         </select>
                       </div>
                     </div>

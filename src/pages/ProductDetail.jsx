@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabaseClient';
 import { ShoppingBag, Truck, ShieldCheck, Clock, Phone } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import LazyImage from '../components/ui/LazyImage';
+import SEO from '../components/ui/SEO';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -52,6 +53,11 @@ const ProductDetail = () => {
 
   return (
     <main className="bg-[#FAF9F6] min-h-screen pt-32 pb-24 font-light">
+      <SEO 
+        title={`${product.name} | ${product.category || 'Luxury Perfume'}`}
+        description={product.description?.slice(0, 160)}
+        image={product.images?.[0]}
+      />
       <Navbar />
       <div className="container mx-auto px-6 max-w-6xl">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">

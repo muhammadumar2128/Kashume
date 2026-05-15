@@ -5,6 +5,7 @@ import { ShoppingBag, Star, Info, Loader2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabaseClient';
 import LazyImage from '../components/ui/LazyImage';
+import SEO from '../components/ui/SEO';
 
 const Bundles = () => {
   const { dispatch } = useCart();
@@ -58,6 +59,10 @@ const Bundles = () => {
 
   return (
     <main className="bg-[#FAF9F6] min-h-screen pt-40 pb-24 font-light">
+      <SEO 
+        title="Curated Collections | Bundle & Save" 
+        description="Thoughtfully paired collections designed for those who seek to experience the full breadth of Kashume's artisanal distillations. Exceptional value, timeless scents."
+      />
       <Navbar />
       
       <div className="container mx-auto px-6 max-w-6xl">

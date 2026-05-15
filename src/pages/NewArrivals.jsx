@@ -4,6 +4,7 @@ import Navbar from '../components/layout/Navbar';
 import ProductCard from '../components/shop/ProductCard';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import SEO from '../components/ui/SEO';
 
 const NewArrivals = () => {
   const [products, setProducts] = useState([]);
@@ -52,6 +53,10 @@ const NewArrivals = () => {
 
   return (
     <main className="relative bg-[#FAF9F6] min-h-screen pt-32 pb-24">
+      <SEO 
+        title="New Arrivals | Latest Essences" 
+        description="Explore the latest olfactory creations from the House of Kashume. Freshly distilled and ready to become your next signature scent."
+      />
       <Navbar />
 
       <div className="container mx-auto px-6 max-w-6xl">
