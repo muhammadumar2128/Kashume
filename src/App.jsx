@@ -24,14 +24,12 @@ import UserProtectedRoute from './components/auth/UserProtectedRoute';
 import Footer from './components/layout/Footer';
 import Preloader from './components/ui/Preloader';
 import WhatsAppFloat from './components/ui/WhatsAppFloat';
-import { AuthProvider } from './context/AuthContext';
-import { CartProvider } from './context/CartContext';
 
 function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Reduce artificial loading time to 2 seconds for a snappier feel
+    // Artificial loading time for the luxury preloader experience
     const timer = setTimeout(() => {
       setLoading(false);
     }, 2000);
@@ -39,12 +37,12 @@ function App() {
   }, []);
 
   return (
-    <AuthProvider>
+    <>
       <AnimatePresence mode="wait">
         {loading && <Preloader key="preloader" />}
       </AnimatePresence>
       
-      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <Router>
         <ScrollToTop />
         <div className="flex flex-col min-h-screen">
           <div className="flex-grow">
@@ -92,7 +90,7 @@ function App() {
             {!loading && <WhatsAppFloat />}
           </div>
         </Router>
-    </AuthProvider>
+    </>
   );
 }
 
