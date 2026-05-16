@@ -222,12 +222,20 @@ const AdminDashboard = () => {
     }
 
     try {
+      console.log("Preparing to send payload to Supabase...", payload);
       let result;
-      if (editingItem) {
-        result = await supabase.from(table).update(payload).eq('id', editingItem.id);
-      } else {
-        result = await supabase.from(table).insert([payload]);
-      }
+      
+      const dbPromise = editingItem 
+        ? supabase.from(table).update(payload).eq('id', editingItem.id)
+        : supabase.from(table).insert([payload]);
+
+      // Wrap in a 10-second timeout to prevent infinite hangs
+      result = await Promise.race([
+        dbPromise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Database request timed out after 10 seconds')), 10000))
+      ]);
+
+      console.log("Supabase response received:", result);
 
       if (result.error) throw result.error;
 
@@ -236,13 +244,14 @@ const AdminDashboard = () => {
       setIsModalOpen(false);
       fetchData();
     } catch (err) {
-      console.error("Save Error:", err);
+      console.error("Save Error Details:", err);
       if (err.message?.includes('column') && err.message?.includes('does not exist')) {
         showNotification("Database schema mismatch. Please contact engineering.", 'error');
       } else {
         showNotification(err.message || "Failed to save record", 'error');
       }
     } finally {
+      console.log("Save operation completed, removing loading state.");
       setLoading(false);
     }
   };
