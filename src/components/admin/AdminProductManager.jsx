@@ -229,32 +229,46 @@ const AdminDashboard = () => {
     }
 
     try {
-      console.log("Sending explicit payload to Supabase:", payload);
-      let result;
+      // Session verification
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log("Admin Session Status:", session ? "Authorized" : "Unauthorized");
       
-      // Native await without Promise.race to avoid masking internal Supabase JS errors
+      console.log("Preparing database request for table:", table);
+      console.log("Final Payload:", payload);
+      
+      let dbPromise;
       if (editingItem) {
-        result = await supabase.from(table).update(payload).eq('id', editingItem.id);
+        if (!editingItem.id) throw new Error("Missing ID for update operation");
+        console.log("Operation: UPDATE, Target ID:", editingItem.id);
+        dbPromise = supabase.from(table).update(payload).eq('id', editingItem.id).select();
       } else {
-        result = await supabase.from(table).insert([payload]);
+        console.log("Operation: INSERT");
+        dbPromise = supabase.from(table).insert([payload]).select();
       }
 
-      console.log("Supabase response:", result);
+      // Re-introducing the timeout but even longer (15s) and with explicit cancellation
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Kashume Protocol: Database request timed out after 15 seconds. Check your internet connection.')), 15000)
+      );
 
-      if (result.error) throw result.error;
+      console.log("Awaiting Supabase response...");
+      const result = await Promise.race([dbPromise, timeoutPromise]);
+      console.log("Supabase response received:", result);
+
+      if (result.error) {
+        console.error("Supabase returned an error object:", result.error);
+        throw result.error;
+      }
 
       const label = activeTab === 'inventory' ? 'Inventory' : activeTab === 'categories' ? 'Category' : activeTab === 'promos' ? 'Promo' : activeTab === 'faqs' ? 'FAQ' : activeTab;
       showNotification(`${label} saved successfully`);
       setIsModalOpen(false);
       fetchData();
     } catch (err) {
-      console.error("Save Error Details:", err);
-      if (err.message?.includes('column') && err.message?.includes('does not exist')) {
-        showNotification("Database schema mismatch. Please contact engineering.", 'error');
-      } else {
-        showNotification(err.message || "Failed to save record", 'error');
-      }
+      console.error("CRITICAL SAVE ERROR:", err);
+      showNotification(err.message || "Failed to save record", 'error');
     } finally {
+      console.log("Save cycle finished.");
       setLoading(false);
     }
   };
