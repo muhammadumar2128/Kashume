@@ -18,10 +18,17 @@ const Login = () => {
     setError('');
     setLoading(true);
     try {
-      const { error } = await login(email, password);
+      const { data, error } = await login(email, password);
       if (error) throw error;
-      // We navigate immediately. ProtectedRoute will handle the admin check 
-      // once the AuthContext updates the user/profile state.
+      
+      // Fetch profile to verify admin status before navigating
+      const { data: profileData } = await supabase.from('profiles').select('is_admin').eq('id', data.user.id).maybeSingle();
+      
+      if (!profileData?.is_admin) {
+        await logout();
+        throw new Error('Access Denied: You do not have Sanctum privileges.');
+      }
+
       navigate('/admin');
     } catch (err) {
       setError(err.message || 'Failed to authenticate with the Sanctum');

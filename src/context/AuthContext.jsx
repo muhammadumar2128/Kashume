@@ -12,10 +12,12 @@ export const AuthProvider = ({ children }) => {
   const fetchProfile = async (userId) => {
     if (!userId) return null;
     try {
-      const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+      console.log('Fetching profile for user:', userId);
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+      console.log('Profile fetch result:', data, 'Error:', error);
       return data;
     } catch (err) {
-      console.error('Profile fetch error:', err);
+      console.error('Profile fetch exception:', err);
       return null;
     }
   };
@@ -47,9 +49,11 @@ export const AuthProvider = ({ children }) => {
 
     // Forced unblock: if we don't have an answer in 3 seconds, let the user in anyway
     const timer = setTimeout(() => {
-      if (mounted && loading) {
-        console.warn('Auth: Forced unlock after timeout');
-        setLoading(false);
+      if (mounted) {
+        setLoading(prev => {
+          if (prev) console.warn('Auth: Forced unlock after timeout');
+          return false;
+        });
       }
     }, 3000);
 
