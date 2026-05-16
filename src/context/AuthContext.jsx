@@ -8,16 +8,26 @@ export const AuthProvider = ({ children }) => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Simple profile fetcher - no retries, no blocking
+  // Simple profile fetcher with a 3-second timeout to prevent hangs
   const fetchProfile = async (userId) => {
     if (!userId) return null;
     try {
       console.log('Fetching profile for user:', userId);
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
-      console.log('Profile fetch result:', data, 'Error:', error);
+      
+      const { data, error } = await Promise.race([
+        supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Profile fetch timeout')), 3000))
+      ]);
+
+      if (error) {
+        console.error('Profile fetch error:', error);
+        return null;
+      }
+      
+      console.log('Profile fetch success');
       return data;
     } catch (err) {
-      console.error('Profile fetch exception:', err);
+      console.warn('Profile fetch stalled or failed:', err.message);
       return null;
     }
   };

@@ -24,32 +24,33 @@ const Shop = () => {
       }
 
       try {
-        console.log("Shop: Fetching products...");
-        const { data, error } = await supabase
-          .from('products')
-          .select('*')
-          .order('created_at', { ascending: false });
+        console.log("Shop: Requesting products from database...");
+        
+        const { data, error } = await Promise.race([
+          supabase.from('products').select('*').order('created_at', { ascending: false }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Product fetch timeout')), 5000))
+        ]);
 
         if (error) {
           console.error('Shop fetch error:', error);
           setProducts([]);
           setFilteredProducts([]);
         } else if (!data || data.length === 0) {
-          console.warn('Shop: No products found in database.');
+          console.warn('Shop: No products returned.');
           setProducts([]);
           setFilteredProducts([]);
         } else {
-          console.log(`Shop: Successfully loaded ${data.length} products.`);
-          // If we want to exclude bundles on this page, we can do it locally for safety
+          console.log(`Shop: Loaded ${data.length} products successfully.`);
           const nonBundles = data.filter(p => p.is_bundle !== true);
           setProducts(nonBundles);
           setFilteredProducts(nonBundles);
         }
       } catch (err) {
-        console.error('Shop unexpected error:', err);
+        console.error('Shop fetch exception or timeout:', err.message);
         setProducts([]);
         setFilteredProducts([]);
       } finally {
+        console.log("Shop: Resolving loading state.");
         setLoading(false);
       }
     };
