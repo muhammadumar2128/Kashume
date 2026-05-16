@@ -18,17 +18,8 @@ const Login = () => {
     setError('');
     setLoading(true);
     try {
-      const { data, error } = await login(email, password);
-      if (error) throw error;
-
-      // Fetch profile to verify admin status before navigating
-      const { data: profileData } = await supabaseAdmin.from('profiles').select('is_admin').eq('id', data.user.id).maybeSingle();
-
-      if (!profileData?.is_admin) {
-        await logout();
-        throw new Error('Access Denied: You do not have Sanctum privileges.');
-      }
-
+      const result = await login(email, password);
+      if (!result.success) throw new Error(result.error);
       navigate('/admin');
     } catch (err) {
       setError(err.message || 'Failed to authenticate with the Sanctum');

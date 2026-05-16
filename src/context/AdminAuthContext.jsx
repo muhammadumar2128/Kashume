@@ -1,119 +1,53 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabaseAdmin } from '../lib/supabaseAdminClient';
 
 const AdminAuthContext = createContext({});
 
 export const AdminAuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId) => {
-    if (!userId) return null;
-    try {
-      console.log('Fetching admin profile for user:', userId);
-      const { data, error } = await supabaseAdmin.from('profiles').select('*').eq('id', userId).maybeSingle();
-      console.log('Admin profile fetch result:', data, 'Error:', error);
-      return data;
-    } catch (err) {
-      console.error('Admin profile fetch exception:', err);
-      return null;
-    }
-  };
-
   useEffect(() => {
-    let mounted = true;
-
-    const { data: { subscription } } = supabaseAdmin.auth.onAuthStateChange(async (event, session) => {
-      console.log('Admin Auth State:', event, session?.user?.email || 'Guest');
-      
-      if (session?.user) {
-        if (mounted) setUser(session.user);
-        
-        const p = await fetchProfile(session.user.id);
-        if (mounted) {
-          setProfile(p);
-          setLoading(false);
-        }
-      } else {
-        if (mounted) {
-          setUser(null);
-          setProfile(null);
-          setLoading(false);
-        }
-      }
-    });
-
-    const timer = setTimeout(() => {
-      if (mounted) {
-        setLoading(prev => {
-          if (prev) console.warn('Admin Auth: Forced unlock after timeout');
-          return false;
-        });
-      }
-    }, 3000);
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-      clearTimeout(timer);
-    };
+    // Check if the Master Key exists in local storage
+    const masterKey = localStorage.getItem('kashume-master-protocol-key');
+    const secureToken = import.meta.env.VITE_ADMIN_PASSWORD || 'kashume2024';
+    
+    if (masterKey === secureToken) {
+      setIsAdmin(true);
+    }
+    setLoading(false);
   }, []);
 
   const login = async (email, password) => {
     setLoading(true);
-    const { data, error } = await supabaseAdmin.auth.signInWithPassword({ email, password });
-    if (error) {
+    // Hard-coded check against the environment variable
+    const secureEmail = 'kashume@gmail.com';
+    const securePassword = import.meta.env.VITE_ADMIN_PASSWORD || 'kashume2024';
+
+    if (email === secureEmail && password === securePassword) {
+      localStorage.setItem('kashume-master-protocol-key', securePassword);
+      setIsAdmin(true);
       setLoading(false);
-      return { data, error };
-    }
-    if (data?.user) {
-      setUser(data.user);
-      const p = await fetchProfile(data.user.id);
-      setProfile(p);
-    }
-    setLoading(false);
-    return { data, error };
-  };
-
-  const logout = async () => {
-    try {
-      await Promise.race([
-        supabaseAdmin.auth.signOut(), // Global sign out for admin session
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Signout timeout')), 3000))
-      ]);
-    } catch (err) {
-      console.warn('Admin logout network request failed or timed out', err);
-    } finally {
-      if (typeof window !== 'undefined') {
-        Object.keys(localStorage).forEach(key => {
-          if (key.includes('admin-auth-token')) {
-            localStorage.removeItem(key);
-          }
-        });
-        sessionStorage.clear();
-      }
-      setUser(null);
-      setProfile(null);
-      setTimeout(() => {
-        window.location.href = '/admin/login';
-      }, 100);
+      return { success: true };
+    } else {
+      setLoading(false);
+      return { success: false, error: 'Invalid Sanctum Credentials' };
     }
   };
 
-  const updatePassword = async (newPassword) => {
-    return await supabaseAdmin.auth.updateUser({ password: newPassword });
+  const logout = () => {
+    localStorage.removeItem('kashume-master-protocol-key');
+    setIsAdmin(false);
+    window.location.href = '/admin/login';
   };
 
   return (
     <AdminAuthContext.Provider value={{
-      user,
-      profile,
+      isAdmin,
+      user: isAdmin ? { email: 'admin@kashume.com', role: 'admin' } : null,
+      profile: isAdmin ? { is_admin: true, full_name: 'The Curator' } : null,
       loading,
       login,
-      logout,
-      updatePassword,
-      refreshProfile: () => fetchProfile(user?.id).then(setProfile)
+      logout
     }}>
       {children}
     </AdminAuthContext.Provider>
