@@ -92,12 +92,20 @@ export const AuthProvider = ({ children }) => {
     try {
       // Forcefully clear session locally even if the server request fails or hangs
       await Promise.race([
-        supabase.auth.signOut(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Signout timeout')), 3000))
+        supabase.auth.signOut({ scope: 'local' }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Signout timeout')), 2000))
       ]);
     } catch (err) {
       console.warn('Logout network request failed or timed out, clearing local session anyway', err);
     } finally {
+      // Nuking Supabase local storage tokens manually as a bulletproof fallback
+      if (typeof window !== 'undefined') {
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
+            localStorage.removeItem(key);
+          }
+        });
+      }
       setUser(null);
       setProfile(null);
       // We use a small timeout to let React updates process before the hard redirect
