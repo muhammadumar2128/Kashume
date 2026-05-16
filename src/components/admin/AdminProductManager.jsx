@@ -177,6 +177,26 @@ const AdminDashboard = () => {
   // --- CRUD Actions ---
   const handleSave = async (e) => {
     e.preventDefault();
+    console.log("handleSave called with activeTab:", activeTab, "formData:", formData);
+    
+    // Manual validation to prevent silent HTML5 validation failures
+    if (activeTab === 'inventory') {
+      if (!formData.name) return showNotification("Essence Name is required", "error");
+      if (!formData.category_id) return showNotification("Botanical Group is required", "error");
+      if (!formData.price) return showNotification("Value (PKR) is required", "error");
+      if (formData.stock === '' || formData.stock === null || formData.stock === undefined) return showNotification("Inventory Stock is required", "error");
+    } else if (activeTab === 'categories') {
+      if (!formData.name) return showNotification("Group Name is required", "error");
+      if (!formData.slug) return showNotification("Botanical Slug is required", "error");
+    } else if (activeTab === 'promos') {
+      if (!formData.code) return showNotification("Secret Token Code is required", "error");
+      if (!formData.discount) return showNotification("Gratuity (%) is required", "error");
+      if (!formData.expiry_date) return showNotification("Soul Expiration is required", "error");
+    } else if (activeTab === 'faqs') {
+      if (!formData.question) return showNotification("The Question is required", "error");
+      if (!formData.answer) return showNotification("The Answer is required", "error");
+    }
+
     setLoading(true);
     
     let table = activeTab === 'inventory' ? 'products' : activeTab === 'promos' ? 'promocodes' : activeTab;
@@ -198,7 +218,7 @@ const AdminDashboard = () => {
     }
 
     if (activeTab === 'faqs') {
-      payload.display_order = parseInt(payload.display_order);
+      payload.display_order = parseInt(payload.display_order) || 0;
     }
 
     try {
@@ -254,14 +274,15 @@ const AdminDashboard = () => {
 
   // --- Visual Archive Protocol (Multi-Image) ---
   const handleImageUpload = async (e) => {
-    const files = Array.from(e.target.files);
+    const inputElement = e.target;
+    const files = Array.from(inputElement.files);
     if (files.length === 0) return;
 
     setUploadingImage(true);
     const newImages = [...(formData.images || [])];
 
     try {
-      for (const file of files) {
+      const uploadPromises = files.map(async (file) => {
         // Explicit check for allowed formats to provide better feedback
         const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
         if (!allowedTypes.includes(file.type)) {
@@ -279,16 +300,32 @@ const AdminDashboard = () => {
           .from('product-images')
           .getPublicUrl(`essences/${fileName}`);
 
-        newImages.push(publicUrl);
+        return publicUrl;
+      });
+
+      const results = await Promise.allSettled(uploadPromises);
+      
+      let successCount = 0;
+      for (const result of results) {
+        if (result.status === 'fulfilled') {
+          newImages.push(result.value);
+          successCount++;
+        } else {
+          console.error("Upload failed for a file:", result.reason);
+          showNotification(`A file failed to upload: ${result.reason?.message || 'Unknown error'}`, 'error');
+        }
       }
 
       setFormData(prev => ({ ...prev, images: newImages }));
-      showNotification(`${files.length} Visual(s) (JPG/PNG/WEBP) captured successfully`);
+      if (successCount > 0) {
+        showNotification(`${successCount} Visual(s) captured successfully`);
+      }
     } catch (error) {
-      showNotification(error.message, 'error');
+      console.error("Global upload error:", error);
+      showNotification(error.message || "Failed to upload images", 'error');
     } finally {
       setUploadingImage(false);
-      e.target.value = null; // Reset input
+      if (inputElement) inputElement.value = null; // Reset input safely
     }
   };
 
@@ -775,18 +812,18 @@ const AdminDashboard = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                       <div className="space-y-2">
                         <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Essence Name</label>
-                        <input className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-base md:text-lg font-serif italic focus:border-gold outline-none transition-all bg-[#F5F2ED]" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required />
+                        <input className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-base md:text-lg font-serif italic focus:border-gold outline-none transition-all bg-[#F5F2ED]" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
                       </div>
                       <div className="space-y-2">
                         <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Botanical Group</label>
-                        <select className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none transition-all bg-[#F5F2ED] font-bold" value={formData.category_id} onChange={e => setFormData({...formData, category_id: e.target.value})} required>
+                        <select className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none transition-all bg-[#F5F2ED] font-bold" value={formData.category_id} onChange={e => setFormData({...formData, category_id: e.target.value})}>
                           <option value="">Select Collection</option>
                           {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
                       </div>
                       <div className="space-y-2">
                         <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Target Gender</label>
-                        <select className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none transition-all bg-[#F5F2ED] font-bold" value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})} required>
+                        <select className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none transition-all bg-[#F5F2ED] font-bold" value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})}>
                           <option value="Men">Men</option>
                           <option value="Women">Women</option>
                           <option value="Unisex">Unisex</option>
@@ -798,7 +835,7 @@ const AdminDashboard = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                       <div className="space-y-2">
                         <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Value (PKR)</label>
-                        <input type="number" className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none bg-[#F5F2ED] font-bold" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} required />
+                        <input type="number" className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none bg-[#F5F2ED] font-bold" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} />
                       </div>
                       <div className="space-y-2">
                         <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Original Value (PKR)</label>
