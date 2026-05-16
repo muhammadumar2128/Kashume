@@ -22,10 +22,9 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
 
-      // Only retry if it's a new sign-up and we didn't find the profile yet
+      // Retry once for new signups
       if (!data && isRetry) {
-        console.log(`Profile not found for ${userId}, retrying once...`);
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 2000));
         const { data: retryData } = await supabase
           .from('profiles')
           .select('*')
@@ -44,61 +43,57 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let mounted = true;
 
-    // Supabase fires the first event (INITIAL_SESSION) immediately upon subscription
+    // 1. Initial Session Check (Standard way to handle startup)
+    const initSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        
+        if (mounted && session?.user) {
+          setUser(session.user);
+          const p = await fetchProfile(session.user.id);
+          if (mounted) setProfile(p);
+        }
+      } catch (err) {
+        console.error('Init session error:', err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    initSession();
+
+    // 2. Auth State Listener (Handles login/logout/token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
       
-      console.log('Auth event:', event, session?.user?.email);
+      console.log('Auth Event:', event, session?.user?.email);
       
       if (session?.user) {
         setUser(session.user);
-        // We only show the global loading state for the INITIAL_SESSION check
-        // Subsequent events (like SIGNED_IN) might already have a user/profile
-        const isNewSignUp = event === 'SIGNED_UP';
         
-        try {
-          const p = await fetchProfile(session.user.id, isNewSignUp);
-          if (mounted) {
-            setProfile(p);
-            // If we have a user but NO profile after retries, it's a ghost/broken session
-            if (!p && event === 'INITIAL_SESSION') {
-              console.warn('Ghost session detected. Clearing...');
-              await supabase.auth.signOut();
-              setUser(null);
-              setProfile(null);
-            }
-          }
-        } catch (err) {
-          console.error('Auth check error:', err);
-        } finally {
-          if (mounted) setLoading(false);
+        // Fetch profile if we don't have it or if it's a new login/signup
+        if (event === 'SIGNED_IN' || event === 'SIGNED_UP' || !profile) {
+          const p = await fetchProfile(session.user.id, event === 'SIGNED_UP');
+          if (mounted) setProfile(p);
         }
       } else {
         setUser(null);
         setProfile(null);
-        setLoading(false);
       }
+      
+      // Always ensure loading is false after any event
+      if (mounted) setLoading(false);
     });
-
-    // Safety fallback: if no event fires within 5 seconds, stop loading
-    const timer = setTimeout(() => {
-      if (mounted && loading) {
-        console.warn('Auth check timed out.');
-        setLoading(false);
-      }
-    }, 5000);
 
     return () => {
       mounted = false;
-      clearTimeout(timer);
       subscription.unsubscribe();
     };
   }, []);
 
   const login = async (email, password) => {
     try {
-      // Don't set global loading here to avoid blocking entire UI, 
-      // let the login page handle its own local loading state
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       return data;
@@ -134,7 +129,6 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      // Force immediate state reset and redirect
       setUser(null);
       setProfile(null);
       setLoading(false);
