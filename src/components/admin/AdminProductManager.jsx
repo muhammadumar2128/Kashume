@@ -204,6 +204,9 @@ const AdminDashboard = () => {
     // Create a clean payload copy
     let payload = { ...formData };
     
+    // Always remove ID from payload because we don't want to update the primary key
+    delete payload.id;
+
     // Clean up payload for 'products' table
     if (activeTab === 'inventory') {
       payload.price = parseFloat(payload.price);
