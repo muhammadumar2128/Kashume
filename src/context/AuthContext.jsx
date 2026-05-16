@@ -6,7 +6,7 @@ const AuthContext = createContext({});
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(false); // Start as false to allow immediate site access
+  const [loading, setLoading] = useState(true); // Start as true to handle the initial check properly
 
   const fetchProfile = async (userId, isRetry = false) => {
     if (!userId) return null;
@@ -43,37 +43,52 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let mounted = true;
 
-    // 1. Initial Session Check (Silent)
     const initSession = async () => {
+      console.log('Auth: Initializing session...');
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Auth: Session retrieval failed:', error.message);
+          return;
+        }
+
         if (mounted && session?.user) {
           setUser(session.user);
           const p = await fetchProfile(session.user.id);
           if (mounted) setProfile(p);
         }
       } catch (err) {
-        console.error('Init session silent error:', err);
+        console.error('Auth: Init error:', err);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+          console.log('Auth: Initialization complete');
+        }
       }
     };
 
     initSession();
 
-    // 2. Auth State Listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
       
-      console.log('Auth Event:', event);
+      console.log('Auth State Change:', event);
       
       if (session?.user) {
         setUser(session.user);
-        if (event === 'SIGNED_IN' || event === 'SIGNED_UP' || !profile) {
+        if (event === 'SIGNED_IN' || event === 'SIGNED_UP') {
+          setLoading(true);
           const p = await fetchProfile(session.user.id, event === 'SIGNED_UP');
-          if (mounted) setProfile(p);
+          if (mounted) {
+            setProfile(p);
+            setLoading(false);
+          }
         }
       } else {
         setUser(null);
         setProfile(null);
+        setLoading(false);
       }
     });
 

@@ -221,9 +221,8 @@ const Account = () => {
 
   const tabs = [
     { id: 'orders', label: 'Orders', icon: Package },
-    { id: 'scent', label: 'Scent Profile', icon: Droplets },
     { id: 'addresses', label: 'Addresses', icon: MapPin },
-    { id: 'profile', label: 'Profile', icon: User },
+    { id: 'security', label: 'Security', icon: User },
   ];
 
   return (
@@ -318,83 +317,10 @@ const Account = () => {
                               <p className="text-lg font-serif mt-2 text-charcoal">Rs. {order.total.toLocaleString()}</p>
                             </div>
                           </div>
-                          <div className="border-t border-ivory pt-6">
-                            <div className="flex -space-x-4 overflow-hidden">
-                              {/* Simple item display logic */}
-                              {Object.values(order.items || {}).map((item, idx) => (
-                                <div key={idx} className="w-12 h-16 bg-[#F5F5F5] border border-white relative group cursor-help">
-                                  <img src={item.image} alt={item.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
-                                  <div className="absolute inset-0 bg-charcoal/80 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                    <span className="text-[8px] text-white font-bold">x{item.quantity}</span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
                         </div>
                       ))}
                     </div>
                   )}
-                </motion.div>
-              )}
-
-              {activeTab === 'scent' && (
-                <motion.div
-                  key="scent"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-12"
-                >
-                  <div className="flex justify-between items-end mb-8">
-                    <h3 className="text-xl font-serif italic text-charcoal">Olfactory Profile</h3>
-                    <Sparkles className="text-gold" size={20} />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="bg-white border border-ivory p-8 md:p-12 space-y-8">
-                      <h4 className="text-[10px] uppercase tracking-[0.4em] text-gold font-bold">Preferred Notes</h4>
-                      {scentProfile.topNotes.length > 0 ? (
-                        <div className="flex flex-wrap gap-3">
-                          {scentProfile.topNotes.map(note => (
-                            <span key={note} className="px-4 py-2 bg-[#F5F2ED] text-[10px] uppercase tracking-widest font-bold text-charcoal rounded-full border border-ivory">
-                              {note}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-charcoal/40 italic">Your palette is waiting for its first essence.</p>
-                      )}
-                    </div>
-
-                    <div className="bg-charcoal text-ivory p-8 md:p-12 space-y-8 relative overflow-hidden">
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-gold/5 rounded-full -mr-16 -mt-16 blur-3xl" />
-                      <h4 className="text-[10px] uppercase tracking-[0.4em] text-gold font-bold">Curated Direction</h4>
-                      <p className="text-sm font-serif italic leading-relaxed relative z-10">
-                        "{scentProfile.recommendation}"
-                      </p>
-                      <a href="/shop" className="inline-block text-[9px] uppercase tracking-[0.3em] text-gold font-black border-b border-gold/30 pb-1 hover:text-white hover:border-white transition-all relative z-10">
-                        Explore Your Palette
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="bg-white border border-ivory p-8 md:p-12">
-                    <h4 className="text-[10px] uppercase tracking-[0.4em] text-gold font-bold mb-8 text-center">Your Olfactory Journey Progress</h4>
-                    <div className="flex justify-between items-center max-w-sm mx-auto">
-                      {[1, 2, 3, 4, 5].map((step) => (
-                        <div key={step} className="flex flex-col items-center gap-4">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all duration-1000 ${orders.length >= step ? 'bg-gold border-gold text-charcoal' : 'border-ivory text-charcoal/20'}`}>
-                            {orders.length >= step ? <Check size={16} strokeWidth={3} /> : <span className="text-[10px] font-bold">{step}</span>}
-                          </div>
-                          <span className="text-[8px] uppercase tracking-widest font-bold text-charcoal/40">Tier {step}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-center text-[10px] text-charcoal/40 mt-12 uppercase tracking-widest leading-relaxed">
-                      {orders.length < 5 ? `Acquire ${5 - orders.length} more essence${5 - orders.length > 1 ? 's' : ''} to reach Tier 5 Patron status.` : "You have attained the rank of Grand Patron."}
-                    </p>
-                  </div>
                 </motion.div>
               )}
 
@@ -522,126 +448,47 @@ const Account = () => {
                         </div>
                       </div>
                     ))}
-                    {addresses.length === 0 && !showAddressForm && (
-                      <div className="md:col-span-2 bg-white border border-dashed border-ivory p-12 text-center text-charcoal/30">
-                        <MapPinned size={32} className="mx-auto mb-4 opacity-20" />
-                        <p className="text-xs uppercase tracking-[0.2em]">No addresses saved yet</p>
-                      </div>
-                    )}
                   </div>
                 </motion.div>
               )}
 
-              {activeTab === 'profile' && (
+              {activeTab === 'security' && (
                 <motion.div
-                  key="profile"
+                  key="security"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   className="space-y-8"
                 >
                   <div className="flex justify-between items-end mb-8">
-                    <h3 className="text-xl font-serif italic text-charcoal">Personal Identity</h3>
-                    <button 
-                      onClick={() => {
-                        setEditingProfile(!editingProfile);
-                        setProfileForm({ full_name: profile?.full_name || '', phone: profile?.phone || '' });
-                      }}
-                      className="text-[9px] uppercase tracking-[0.3em] text-gold font-bold flex items-center gap-2"
-                    >
-                      {editingProfile ? 'Cancel' : 'Edit Profile'}
-                    </button>
-                  </div>
-
-                  <div className="bg-white border border-ivory p-8 md:p-12 space-y-10">
-                    <form onSubmit={handleUpdateProfile} className="space-y-8">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="space-y-2">
-                          <label className="text-[9px] uppercase tracking-widest text-charcoal/40 block">Full Legal Name</label>
-                          {editingProfile ? (
-                            <input 
-                              className="w-full border-b border-ivory py-2 outline-none focus:border-gold transition-colors text-sm"
-                              value={profileForm.full_name}
-                              onChange={e => setProfileForm({...profileForm, full_name: e.target.value})}
-                            />
-                          ) : (
-                            <p className="text-sm font-bold text-charcoal py-2">{profile?.full_name || 'Not Provided'}</p>
-                          )}
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[9px] uppercase tracking-widest text-charcoal/40 block">Primary Contact</label>
-                          {editingProfile ? (
-                            <input 
-                              className="w-full border-b border-ivory py-2 outline-none focus:border-gold transition-colors text-sm"
-                              value={profileForm.phone}
-                              onChange={e => setProfileForm({...profileForm, phone: e.target.value})}
-                              placeholder="+92 300 1234567"
-                            />
-                          ) : (
-                            <p className="text-sm font-bold text-charcoal py-2">{profile?.phone || 'Not Provided'}</p>
-                          )}
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[9px] uppercase tracking-widest text-charcoal/40 block">Identity (Email)</label>
-                          <p className="text-sm font-bold text-charcoal/40 py-2">{user?.email}</p>
-                        </div>
-                      </div>
-
-                      {editingProfile && (
-                        <button type="submit" className="bg-charcoal text-white px-12 py-4 text-[10px] uppercase tracking-[0.4em] hover:bg-gold transition-all duration-700">
-                          Update Sanctuary Details
-                        </button>
-                      )}
-                    </form>
+                    <h3 className="text-xl font-serif italic text-charcoal">Security Protocols</h3>
                   </div>
 
                   <div className="bg-white border border-ivory p-8 md:p-12">
-                    <h4 className="text-[10px] uppercase tracking-[0.4em] text-gold font-bold mb-6">Security & Preferences</h4>
-                    <p className="text-xs text-charcoal/40 mb-8 leading-relaxed">Protect your account and manage your sanctuary credentials.</p>
+                    <h4 className="text-[10px] uppercase tracking-[0.4em] text-gold font-bold mb-6">Credential Management</h4>
+                    <p className="text-xs text-charcoal/40 mb-8 leading-relaxed">Ensure the sanctity of your sanctuary by updating your access key.</p>
                     
-                    <div className="flex flex-col gap-8">
-                      {/* Password Change Section */}
-                      <div className="space-y-4">
-                        <button 
-                          onClick={() => setShowPasswordForm(!showPasswordForm)}
-                          className="text-[9px] uppercase tracking-[0.2em] px-6 py-3 border border-ivory text-charcoal hover:border-gold transition-colors"
-                        >
-                          {showPasswordForm ? 'Cancel Password Change' : 'Change Password'}
-                        </button>
-                        
-                        <AnimatePresence>
-                          {showPasswordForm && (
-                            <motion.form 
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
-                              exit={{ opacity: 0, height: 0 }}
-                              onSubmit={handlePasswordUpdate}
-                              className="space-y-4 overflow-hidden"
-                            >
-                              <div className="space-y-2">
-                                <label className="text-[9px] uppercase tracking-widest text-charcoal/40 block">New Password</label>
-                                <input 
-                                  type="password"
-                                  required
-                                  minLength={6}
-                                  value={newPassword}
-                                  onChange={(e) => setNewPassword(e.target.value)}
-                                  className="w-full max-w-sm border-b border-ivory py-2 outline-none focus:border-gold transition-colors text-sm"
-                                  placeholder="Minimum 6 characters"
-                                />
-                              </div>
-                              <button 
-                                type="submit"
-                                disabled={passwordStatus === 'loading'}
-                                className="bg-charcoal text-white px-8 py-3 text-[9px] uppercase tracking-[0.3em] hover:bg-gold transition-all"
-                              >
-                                {passwordStatus === 'loading' ? 'Updating...' : passwordStatus === 'success' ? 'Updated!' : 'Update Password'}
-                              </button>
-                            </motion.form>
-                          )}
-                        </AnimatePresence>
+                    <form onSubmit={handlePasswordUpdate} className="space-y-6">
+                      <div className="space-y-2">
+                        <label className="text-[9px] uppercase tracking-widest text-charcoal/40 block">New Password</label>
+                        <input 
+                          type="password"
+                          required
+                          minLength={6}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          className="w-full max-w-sm border-b border-ivory py-2 outline-none focus:border-gold transition-colors text-sm"
+                          placeholder="Minimum 6 characters"
+                        />
                       </div>
-                    </div>
+                      <button 
+                        type="submit"
+                        disabled={passwordStatus === 'loading'}
+                        className="bg-charcoal text-white px-8 py-4 text-[9px] uppercase tracking-[0.3em] hover:bg-gold transition-all font-bold"
+                      >
+                        {passwordStatus === 'loading' ? 'Processing...' : passwordStatus === 'success' ? 'Protocol Updated' : 'Update Access Key'}
+                      </button>
+                    </form>
                   </div>
                 </motion.div>
               )}
