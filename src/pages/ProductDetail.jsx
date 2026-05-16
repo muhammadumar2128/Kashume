@@ -59,7 +59,7 @@ const ProductDetail = () => {
     if (product?.images && product.images.length > 1) {
       const interval = setInterval(() => {
         setCurrentImageIndex((prevIndex) => (prevIndex + 1) % product.images.length);
-      }, 3000);
+      }, 5000); // Slower interval
       return () => clearInterval(interval);
     }
   }, [product?.images]);
@@ -97,7 +97,7 @@ const ProductDetail = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 1 }}
+                  transition={{ duration: 2, ease: "easeInOut" }}
                   className="absolute inset-0 w-full h-full"
                 >
                   <LazyImage 
