@@ -177,34 +177,52 @@ const AdminDashboard = () => {
   // --- CRUD Actions ---
   const handleSave = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    
     let table = activeTab === 'inventory' ? 'products' : activeTab === 'promos' ? 'promocodes' : activeTab;
+    
+    // Create a clean payload copy
     let payload = { ...formData };
     
+    // Clean up payload for 'products' table
     if (activeTab === 'inventory') {
       payload.price = parseFloat(payload.price);
       payload.original_price = payload.original_price ? parseFloat(payload.original_price) : null;
       payload.stock = parseInt(payload.stock);
+      
+      // CRITICAL: Supabase will reject the insert if it sees columns that don't exist
+      // like 'categories' which is a joined object from the SELECT query.
       delete payload.categories;
+      delete payload.created_at; // Usually handled by DB
+      delete payload.updated_at;
     }
 
     if (activeTab === 'faqs') {
       payload.display_order = parseInt(payload.display_order);
     }
 
-    const { error } = editingItem 
-      ? await supabase.from(table).update(payload).eq('id', editingItem.id)
-      : await supabase.from(table).insert([payload]);
-
-    if (error) {
-      if (error.message.includes('column') && error.message.includes('does not exist')) {
-        showNotification("Database schema needs update. Please run migrations.", 'error');
+    try {
+      let result;
+      if (editingItem) {
+        result = await supabase.from(table).update(payload).eq('id', editingItem.id);
       } else {
-        showNotification(error.message, 'error');
+        result = await supabase.from(table).insert([payload]);
       }
-    } else {
+
+      if (result.error) throw result.error;
+
       showNotification(`${activeTab.slice(0, -1)} saved successfully`);
       setIsModalOpen(false);
       fetchData();
+    } catch (err) {
+      console.error("Save Error:", err);
+      if (err.message?.includes('column') && err.message?.includes('does not exist')) {
+        showNotification("Database schema mismatch. Please contact engineering.", 'error');
+      } else {
+        showNotification(err.message || "Failed to save record", 'error');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 

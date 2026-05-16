@@ -6,7 +6,7 @@ const AuthContext = createContext({});
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Start as false to allow immediate site access
 
   const fetchProfile = async (userId, isRetry = false) => {
     if (!userId) return null;
@@ -43,36 +43,30 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let mounted = true;
 
-    // 1. Initial Session Check (Standard way to handle startup)
+    // 1. Initial Session Check (Silent)
     const initSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) throw error;
-        
+        const { data: { session } } = await supabase.auth.getSession();
         if (mounted && session?.user) {
           setUser(session.user);
           const p = await fetchProfile(session.user.id);
           if (mounted) setProfile(p);
         }
       } catch (err) {
-        console.error('Init session error:', err);
-      } finally {
-        if (mounted) setLoading(false);
+        console.error('Init session silent error:', err);
       }
     };
 
     initSession();
 
-    // 2. Auth State Listener (Handles login/logout/token refresh)
+    // 2. Auth State Listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
       
-      console.log('Auth Event:', event, session?.user?.email);
+      console.log('Auth Event:', event);
       
       if (session?.user) {
         setUser(session.user);
-        
-        // Fetch profile if we don't have it or if it's a new login/signup
         if (event === 'SIGNED_IN' || event === 'SIGNED_UP' || !profile) {
           const p = await fetchProfile(session.user.id, event === 'SIGNED_UP');
           if (mounted) setProfile(p);
@@ -81,9 +75,6 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setProfile(null);
       }
-      
-      // Always ensure loading is false after any event
-      if (mounted) setLoading(false);
     });
 
     return () => {
