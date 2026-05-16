@@ -7,7 +7,7 @@ import {
   Search, Filter, ArrowLeft, Loader2, CheckCircle2, AlertCircle,
   Package, ShoppingBag, Clock, CheckCircle, Truck, Upload,
   Tag, Settings, LogOut, Key, Hash, LayoutGrid, Database,
-  Eye, Droplets, Thermometer, HelpCircle, Wifi, WifiOff, Menu
+  Eye, Droplets, Thermometer, HelpCircle, Wifi, WifiOff, Menu, User
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -58,6 +58,8 @@ const AdminDashboard = () => {
   
   // UI States
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -146,6 +148,11 @@ const AdminDashboard = () => {
   };
 
   // --- Modal Logic ---
+  const openOrderModal = (order) => {
+    setSelectedOrder(order);
+    setIsOrderModalOpen(true);
+  };
+
   const openModal = (item = null) => {
     setEditingItem(item);
     if (activeTab === 'inventory') {
@@ -576,7 +583,11 @@ const AdminDashboard = () => {
                   </thead>
                   <tbody className="divide-y divide-charcoal/5 text-xs md:text-sm font-light">
                     {orders.map(o => (
-                      <tr key={o.id} className="hover:bg-[#F5F2ED]/50 text-charcoal">
+                      <tr 
+                        key={o.id} 
+                        onClick={() => openOrderModal(o)}
+                        className="hover:bg-[#F5F2ED] text-charcoal cursor-pointer transition-colors duration-300"
+                      >
                         <td className="p-4 md:p-6 font-mono text-[9px] md:text-[10px] text-charcoal/60 font-bold">#{o.id.slice(0,8)}</td>
                         <td className="p-4 md:p-6 font-medium">
                           <div className="font-bold text-sm">{o.customer_name}</div>
@@ -592,12 +603,24 @@ const AdminDashboard = () => {
                             o.status === 'delivered' ? 'bg-green-100 text-green-700' : 'bg-gold/20 text-gold-800'
                           }`}>{o.status}</span>
                         </td>
-                        <td className="p-4 md:p-6 text-right">
+                        <td className="p-4 md:p-6 text-right" onClick={(e) => e.stopPropagation()}>
                           <select 
                             className="text-[8px] md:text-[9px] uppercase tracking-widest bg-white border border-charcoal/20 p-1.5 md:p-2 focus:outline-none focus:border-gold transition-colors rounded-sm text-charcoal font-bold max-w-[90px] md:max-w-none"
                             onChange={async (e) => {
-                              await supabase.from('orders').update({ status: e.target.value }).eq('id', o.id);
-                              fetchData();
+                              const newStatus = e.target.value;
+                              const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', o.id);
+                              if (!error) {
+                                // Trigger email notification via Vercel Serverless Function
+                                await fetch('/api/send-email', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    order: { ...o, status: newStatus },
+                                    type: 'order_status_update'
+                                  })
+                                });
+                                fetchData();
+                              }
                             }}
                             value={o.status}
                           >
@@ -939,6 +962,87 @@ const AdminDashboard = () => {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Order Details Modal */}
+      <AnimatePresence>
+        {isOrderModalOpen && selectedOrder && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-8 backdrop-blur-md">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsOrderModalOpen(false)} className="absolute inset-0 bg-charcoal/90" />
+            <motion.div initial={{ opacity: 0, scale: 0.9, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 30 }} className="bg-white w-full max-w-2xl relative z-10 shadow-2xl rounded-3xl overflow-hidden flex flex-col max-h-[90vh]">
+              <div className="p-6 md:p-8 border-b border-charcoal/10 flex justify-between items-center bg-[#F5F2ED]">
+                <div>
+                  <h3 className="text-xl md:text-2xl font-serif italic text-charcoal font-bold">Order Details</h3>
+                  <p className="text-[9px] uppercase tracking-[0.3em] text-gold mt-1 font-bold italic">Reference: #{selectedOrder.id.slice(0, 8)}</p>
+                </div>
+                <button onClick={() => setIsOrderModalOpen(false)} className="text-charcoal/60 hover:text-charcoal"><X size={24} /></button>
+              </div>
+
+              <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar space-y-8">
+                {/* Client Information */}
+                <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] uppercase tracking-[0.4em] text-gold font-bold flex items-center gap-2">
+                      <User size={14} /> Client Identity
+                    </h4>
+                    <div className="space-y-1">
+                      <p className="text-base font-bold text-charcoal">{selectedOrder.customer_name}</p>
+                      <p className="text-xs text-charcoal/60 font-medium">{selectedOrder.customer_email}</p>
+                      <p className="text-xs text-charcoal/60 font-mono">{selectedOrder.phone}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] uppercase tracking-[0.4em] text-gold font-bold flex items-center gap-2">
+                      <Truck size={14} /> Shipping Protocol
+                    </h4>
+                    <p className="text-xs leading-relaxed italic text-charcoal/80 font-medium">{selectedOrder.shipping_address}</p>
+                  </div>
+                </section>
+
+                {/* Selection Ledger */}
+                <section className="space-y-4">
+                  <h4 className="text-[10px] uppercase tracking-[0.4em] text-gold font-bold flex items-center gap-2">
+                    <ShoppingBag size={14} /> Selection Ledger
+                  </h4>
+                  <div className="space-y-3">
+                    {Object.values(selectedOrder.items || {}).map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-4 bg-[#F5F2ED] p-3 rounded-xl border border-charcoal/5">
+                        <div className="w-12 h-16 bg-white overflow-hidden rounded-lg border border-charcoal/10 flex-shrink-0">
+                          <img src={item.image} className="w-full h-full object-cover grayscale-[10%]" />
+                        </div>
+                        <div className="flex-grow">
+                          <p className="text-sm font-bold text-charcoal font-serif italic">{item.name}</p>
+                          <p className="text-[10px] text-charcoal/40 uppercase tracking-widest font-black">Quantity: {item.quantity}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-sans font-black text-charcoal">Rs. {item.price * item.quantity}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* Financial Summary */}
+                <section className="pt-6 border-t border-charcoal/10 flex justify-between items-end">
+                  <div className="space-y-2">
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-charcoal/40 font-bold">Exchange Protocol</p>
+                    <p className="text-xs font-bold text-gold uppercase tracking-widest">{selectedOrder.payment_method}</p>
+                  </div>
+                  <div className="text-right space-y-1">
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-charcoal/40 font-bold">Total Valuation</p>
+                    <p className="text-2xl font-serif italic font-black text-charcoal">Rs. {selectedOrder.total.toLocaleString()}</p>
+                  </div>
+                </section>
+              </div>
+              
+              <div className="p-6 bg-[#F5F2ED] border-t border-charcoal/10 flex justify-end">
+                <button onClick={() => setIsOrderModalOpen(false)} className="bg-charcoal text-white px-8 py-3 text-[10px] uppercase tracking-[0.4em] hover:bg-gold transition-all duration-700 font-bold">
+                  Close Archive
+                </button>
+              </div>
             </motion.div>
           </div>
         )}

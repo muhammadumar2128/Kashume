@@ -14,9 +14,13 @@ import FAQ from './pages/FAQ';
 import ShippingPolicy from './pages/ShippingPolicy';
 import TermsOfService from './pages/TermsOfService';
 import Checkout from './pages/Checkout';
+import Account from './pages/Account';
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
 import AdminProductManager from './components/admin/AdminProductManager';
-import Login from './pages/admin/Login';
+import AdminLogin from './pages/admin/Login';
 import ProtectedRoute from './components/admin/ProtectedRoute';
+import UserProtectedRoute from './components/auth/UserProtectedRoute';
 import Footer from './components/layout/Footer';
 import Preloader from './components/ui/Preloader';
 import WhatsAppFloat from './components/ui/WhatsAppFloat';
@@ -27,25 +31,25 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Reduce artificial loading time to 2 seconds for a snappier feel
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 3000);
+    }, 2000);
     return () => clearTimeout(timer);
   }, []);
 
   return (
     <AuthProvider>
-      <CartProvider>
-        <AnimatePresence mode="wait">
-          {loading && <Preloader key="preloader" />}
-        </AnimatePresence>
-        
-        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <ScrollToTop />
-          <div className="flex flex-col min-h-screen">
-            <div className="flex-grow">
-              <AnimatePresence mode="wait">
-                <Routes>
+      <AnimatePresence mode="wait">
+        {loading && <Preloader key="preloader" />}
+      </AnimatePresence>
+      
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <ScrollToTop />
+        <div className="flex flex-col min-h-screen">
+          <div className="flex-grow">
+            <AnimatePresence mode="wait">
+              <Routes>
                   <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
                   <Route path="/about" element={<PageWrapper><About /></PageWrapper>} />
                   <Route path="/contact" element={<PageWrapper><Contact /></PageWrapper>} />
@@ -59,8 +63,20 @@ function App() {
                   <Route path="/terms-of-service" element={<PageWrapper><TermsOfService /></PageWrapper>} />
                   <Route path="/checkout" element={<PageWrapper><Checkout /></PageWrapper>} />
                   
+                  {/* Auth Routes */}
+                  <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
+                  <Route path="/register" element={<PageWrapper><Register /></PageWrapper>} />
+                  <Route 
+                    path="/account" 
+                    element={
+                      <UserProtectedRoute>
+                        <PageWrapper><Account /></PageWrapper>
+                      </UserProtectedRoute>
+                    } 
+                  />
+
                   {/* Admin Routes */}
-                  <Route path="/admin/login" element={<PageWrapper><Login /></PageWrapper>} />
+                  <Route path="/admin/login" element={<PageWrapper><AdminLogin /></PageWrapper>} />
                   <Route 
                     path="/admin" 
                     element={
@@ -76,7 +92,6 @@ function App() {
             {!loading && <WhatsAppFloat />}
           </div>
         </Router>
-      </CartProvider>
     </AuthProvider>
   );
 }

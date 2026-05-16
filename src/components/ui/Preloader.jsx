@@ -10,7 +10,7 @@ const Preloader = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setStartPanels(true);
-    }, 2200);
+    }, 1200); // Reduced from 2200 for a snappier entrance
     return () => clearTimeout(timer);
   }, []);
 
@@ -19,7 +19,7 @@ const Preloader = () => {
     initial: { y: 0 },
     exit: (i) => ({
       y: i % 2 === 0 ? "-100%" : "100%",
-      transition: { duration: 1, ease: [0.65, 0, 0.35, 1], delay: 0.2 }
+      transition: { duration: 0.8, ease: [0.65, 0, 0.35, 1], delay: 0.1 } // Faster duration
     })
   };
 
@@ -28,12 +28,12 @@ const Preloader = () => {
     animate: (i) => ({
       y: 0,
       opacity: 1,
-      transition: { duration: 1, ease: [0.22, 1, 0.36, 1], delay: i * 0.1 }
+      transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: i * 0.08 } // Faster duration/delay
     }),
     exit: {
       opacity: 0,
       y: -20,
-      transition: { duration: 0.5, ease: "easeIn" }
+      transition: { duration: 0.4, ease: "easeIn" }
     }
   };
 

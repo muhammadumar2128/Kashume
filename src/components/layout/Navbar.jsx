@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Menu, X, Search, Shield } from 'lucide-react';
+import { ShoppingBag, Menu, X, Search, Shield, User } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import CartDrawer from '../shop/CartDrawer';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const Navbar = ({ variant = 'dark' }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { state, dispatch } = useCart();
+  const { user } = useAuth();
   const location = useLocation();
   const itemCount = state.items.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -72,6 +74,14 @@ const Navbar = ({ variant = 'dark' }) => {
             </button>
 
             <Link 
+              to="/account" 
+              className="hover:text-gold transition-colors duration-300"
+              title="Account"
+            >
+              <User size={18} strokeWidth={1.5} className={user ? 'text-gold' : ''} />
+            </Link>
+
+            <Link 
               to="/admin" 
               className="hover:text-gold transition-colors duration-300 hidden md:flex items-center"
               title="Admin Sanctum"
@@ -125,11 +135,19 @@ const Navbar = ({ variant = 'dark' }) => {
                     </Link>
                   </motion.div>
                 ))}
+                
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: navLinks.length * 0.1 + 0.2 }}
+                  className="flex flex-col gap-6 items-center"
                 >
+                  <Link 
+                    to="/account" 
+                    className="text-xs uppercase tracking-[0.4em] text-charcoal hover:text-gold transition-colors font-bold"
+                  >
+                    Account
+                  </Link>
                   <Link 
                     to="/admin" 
                     className="text-xs uppercase tracking-[0.4em] text-gold/60 italic hover:text-gold transition-colors font-bold"

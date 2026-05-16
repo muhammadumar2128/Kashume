@@ -3,13 +3,14 @@ import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Lock, Mail, Loader2, AlertCircle } from 'lucide-react';
+import { supabase } from '../../lib/supabaseClient';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -17,7 +18,20 @@ const Login = () => {
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
+      const { user: authUser } = await login(email, password);
+      
+      // Fetch profile to check is_admin
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', authUser.id)
+        .maybeSingle();
+
+      if (profileError || !profile || !profile.is_admin) {
+        await logout(); // Kick them out if not admin or profile missing
+        throw new Error('Access denied. No admin profile found for this account.');
+      }
+
       navigate('/admin');
     } catch (err) {
       setError(err.message || 'Failed to authenticate with the Sanctum');

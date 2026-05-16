@@ -5,12 +5,15 @@ import Navbar from '../components/layout/Navbar';
 import { supabase } from '../lib/supabaseClient';
 import { ShoppingBag, Truck, ShieldCheck, Clock, Phone } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import LazyImage from '../components/ui/LazyImage';
 import SEO from '../components/ui/SEO';
+import ReviewSection from '../components/shop/ReviewSection';
 
 const ProductDetail = () => {
   const { id } = useParams();
   const { dispatch } = useCart();
+  const { user, profile } = useAuth();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -161,6 +164,13 @@ const ProductDetail = () => {
             </motion.div>
           </div>
         </div>
+
+        {/* Review Section */}
+        <ReviewSection 
+          productId={product.id} 
+          userId={user?.id} 
+          userName={profile?.full_name} 
+        />
       </div>
     </main>
   );
