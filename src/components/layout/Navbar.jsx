@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Menu, X, Search, Shield, User } from 'lucide-react';
+import { ShoppingBag, Menu, X, Search, User } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import CartDrawer from '../shop/CartDrawer';
 import { Link, useLocation } from 'react-router-dom';
@@ -80,14 +80,6 @@ const Navbar = ({ variant = 'dark' }) => {
             >
               <User size={18} strokeWidth={1.5} className={user ? 'text-gold' : ''} />
             </Link>
-
-            <Link 
-              to="/admin" 
-              className="hover:text-gold transition-colors duration-300 hidden md:flex items-center"
-              title="Admin Sanctum"
-            >
-              <Shield size={16} strokeWidth={1.5} />
-            </Link>
             
             <button 
               onClick={() => dispatch({ type: 'TOGGLE_CART', payload: true })}
@@ -147,12 +139,6 @@ const Navbar = ({ variant = 'dark' }) => {
                     className="text-xs uppercase tracking-[0.4em] text-charcoal hover:text-gold transition-colors font-bold"
                   >
                     Account
-                  </Link>
-                  <Link 
-                    to="/admin" 
-                    className="text-xs uppercase tracking-[0.4em] text-gold/60 italic hover:text-gold transition-colors font-bold"
-                  >
-                    Command
                   </Link>
                 </motion.div>
               </div>
