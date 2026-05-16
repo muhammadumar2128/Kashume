@@ -18,7 +18,8 @@ const Login = () => {
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
+      const { error } = await login(email, password);
+      if (error) throw error;
       // We navigate immediately. ProtectedRoute will handle the admin check 
       // once the AuthContext updates the user/profile state.
       navigate('/admin');
