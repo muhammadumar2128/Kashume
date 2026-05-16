@@ -17,7 +17,6 @@ const Shop = () => {
       // Safely check if Supabase is configured
       const url = import.meta.env.VITE_SUPABASE_URL;
       if (!url || url.includes('placeholder')) {
-        console.warn('Shop: Supabase URL is missing or placeholder.');
         setProducts([]);
         setFilteredProducts([]);
         setLoading(false);
@@ -25,23 +24,26 @@ const Shop = () => {
       }
 
       try {
+        console.log("Shop: Fetching products...");
         const { data, error } = await supabase
           .from('products')
           .select('*')
-          .eq('is_bundle', false)
           .order('created_at', { ascending: false });
 
         if (error) {
           console.error('Shop fetch error:', error);
           setProducts([]);
           setFilteredProducts([]);
-        } else if (!data) {
-          console.warn('Shop: No data returned from Supabase.');
+        } else if (!data || data.length === 0) {
+          console.warn('Shop: No products found in database.');
           setProducts([]);
           setFilteredProducts([]);
         } else {
-          setProducts(data);
-          setFilteredProducts(data);
+          console.log(`Shop: Successfully loaded ${data.length} products.`);
+          // If we want to exclude bundles on this page, we can do it locally for safety
+          const nonBundles = data.filter(p => p.is_bundle !== true);
+          setProducts(nonBundles);
+          setFilteredProducts(nonBundles);
         }
       } catch (err) {
         console.error('Shop unexpected error:', err);

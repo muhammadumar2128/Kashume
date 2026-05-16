@@ -25,42 +25,41 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let mounted = true;
 
-    // Direct listener for all auth changes (including the initial session restore)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth State:', event, session?.user?.email || 'Guest');
-      
-      if (session?.user) {
-        if (mounted) setUser(session.user);
-        
-        // Sync profile in background
-        const p = await fetchProfile(session.user.id);
-        if (mounted) {
-          setProfile(p);
-          setLoading(false);
-        }
-      } else {
-        if (mounted) {
-          setUser(null);
-          setProfile(null);
+    // Fast initial check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted) {
+        if (session?.user) {
+          setUser(session.user);
+          fetchProfile(session.user.id).then(p => {
+            if (mounted) {
+              setProfile(p);
+              setLoading(false);
+            }
+          });
+        } else {
           setLoading(false);
         }
       }
     });
 
-    // Forced unblock: if we don't have an answer in 3 seconds, let the user in anyway
-    const timer = setTimeout(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth State Changed:', event, session?.user?.email || 'Guest');
       if (mounted) {
-        setLoading(prev => {
-          if (prev) console.warn('Auth: Forced unlock after timeout');
-          return false;
-        });
+        if (session?.user) {
+          setUser(session.user);
+          const p = await fetchProfile(session.user.id);
+          if (mounted) setProfile(p);
+        } else {
+          setUser(null);
+          setProfile(null);
+        }
+        setLoading(false);
       }
-    }, 3000);
+    });
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
-      clearTimeout(timer);
     };
   }, []);
 
