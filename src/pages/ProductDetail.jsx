@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/layout/Navbar';
 import { supabase } from '../lib/supabaseClient';
 import { ShoppingBag, Truck, ShieldCheck, Clock, Phone } from 'lucide-react';
@@ -16,6 +16,7 @@ const ProductDetail = () => {
   const { user, profile } = useAuth();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -54,6 +55,15 @@ const ProductDetail = () => {
     fetchProduct();
   }, [id]);
 
+  useEffect(() => {
+    if (product?.images && product.images.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % product.images.length);
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [product?.images]);
+
   const addToCart = () => {
     dispatch({ type: 'ADD_ITEM', payload: product });
   };
@@ -61,12 +71,14 @@ const ProductDetail = () => {
   if (loading) return <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center"><div className="w-8 h-8 border border-gold border-t-transparent rounded-full animate-spin" /></div>;
   if (!product) return <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center font-light text-charcoal/40">Essence not found.</div>;
 
+  const displayImages = product.images?.length > 0 ? product.images : (product.image ? [product.image] : []);
+
   return (
     <main className="bg-[#FAF9F6] min-h-screen pt-32 pb-24 font-light">
       <SEO 
         title={`${product.name} | ${product.category || 'Luxury Perfume'}`}
         description={product.description?.slice(0, 160)}
-        image={product.images?.[0]}
+        image={displayImages[0]}
       />
       <Navbar />
       <div className="container mx-auto px-6 max-w-6xl">
@@ -78,13 +90,36 @@ const ProductDetail = () => {
             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
             className="relative"
           >
-            <div className="aspect-[4/5] bg-white shadow-2xl shadow-charcoal/10 ring-1 ring-charcoal/15 rounded-3xl overflow-hidden">
-              <LazyImage 
-                src={product.images?.[0]} 
-                alt={product.name} 
-                containerClassName="w-full h-full"
-                className="w-full h-full object-cover" 
-              />
+            <div className="relative aspect-[4/5] bg-white shadow-2xl shadow-charcoal/10 ring-1 ring-charcoal/15 rounded-3xl overflow-hidden">
+              <AnimatePresence initial={false}>
+                <motion.div
+                  key={currentImageIndex}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 1 }}
+                  className="absolute inset-0 w-full h-full"
+                >
+                  <LazyImage 
+                    src={displayImages[currentImageIndex]} 
+                    alt={`${product.name} - View ${currentImageIndex + 1}`} 
+                    containerClassName="w-full h-full"
+                    className="w-full h-full object-cover" 
+                  />
+                </motion.div>
+              </AnimatePresence>
+              
+              {/* Optional: Image Indicators */}
+              {displayImages.length > 1 && (
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+                  {displayImages.map((_, idx) => (
+                    <div 
+                      key={idx} 
+                      className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${idx === currentImageIndex ? 'bg-gold w-3' : 'bg-charcoal/30'}`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
             
             {/* Elegant Floating Badge */}
@@ -92,7 +127,7 @@ const ProductDetail = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.8, duration: 0.8 }}
-              className="absolute -top-4 -right-4 bg-gold text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg"
+              className="absolute -top-4 -right-4 bg-gold text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg z-20"
             >
               <div className="text-center">
                 <span className="text-[8px] uppercase tracking-tighter block leading-none font-bold">Original</span>
