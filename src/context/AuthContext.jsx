@@ -70,10 +70,15 @@ export const AuthProvider = ({ children }) => {
       }
     });
 
-    // 3. Safety Fallback: Never let the app hang more than 2 seconds for auth
+    // 3. Safety Fallback: Forcefully unlock UI after 1.5 seconds no matter what
     const timer = setTimeout(() => {
-      if (mounted) setLoading(false);
-    }, 2000);
+      if (mounted) {
+        setLoading(prev => {
+          if (prev) console.warn('Auth: Forced unlock after 1.5s timeout');
+          return false;
+        });
+      }
+    }, 1500);
 
     return () => {
       mounted = false;
