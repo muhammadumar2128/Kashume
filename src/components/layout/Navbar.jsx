@@ -3,12 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Menu, X, Search, User } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import CartDrawer from '../shop/CartDrawer';
+import SearchOverlay from '../shop/SearchOverlay';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const Navbar = ({ variant = 'dark' }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { state, dispatch } = useCart();
   const { user } = useAuth();
   const location = useLocation();
@@ -27,6 +29,7 @@ const Navbar = ({ variant = 'dark' }) => {
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    setIsSearchOpen(false);
   }, [location]);
 
   const navLinks = [
@@ -69,7 +72,10 @@ const Navbar = ({ variant = 'dark' }) => {
           </Link>
 
           <div className={`flex gap-4 md:gap-6 items-center ${textColor} transition-colors duration-500`}>
-            <button className="hover:text-gold transition-colors duration-300 hidden md:block">
+            <button 
+              onClick={() => setIsSearchOpen(true)}
+              className="hover:text-gold transition-colors duration-300 hidden md:block"
+            >
               <Search size={18} strokeWidth={1.5} />
             </button>
 
@@ -134,6 +140,15 @@ const Navbar = ({ variant = 'dark' }) => {
                   transition={{ delay: navLinks.length * 0.1 + 0.2 }}
                   className="flex flex-col gap-6 items-center"
                 >
+                  <button 
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setIsSearchOpen(true);
+                    }}
+                    className="text-xs uppercase tracking-[0.4em] text-charcoal hover:text-gold transition-colors font-bold flex items-center gap-2"
+                  >
+                    <Search size={14} /> Search
+                  </button>
                   <Link 
                     to="/account" 
                     className="text-xs uppercase tracking-[0.4em] text-charcoal hover:text-gold transition-colors font-bold"
@@ -148,6 +163,7 @@ const Navbar = ({ variant = 'dark' }) => {
       </motion.nav>
 
       <CartDrawer isOpen={state.isCartOpen} onClose={() => dispatch({ type: 'TOGGLE_CART', payload: false })} />
+      <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </>
   );
 };
