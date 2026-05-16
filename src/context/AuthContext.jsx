@@ -9,6 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId) => {
+    if (!userId) return null;
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -16,59 +17,57 @@ export const AuthProvider = ({ children }) => {
         .eq('id', userId)
         .maybeSingle();
       
-      if (error) throw error;
-      setProfile(data);
-    } catch (error) {
-      console.error('Error fetching profile:', error.message);
+      if (error) {
+        console.error('Profile fetch error:', error);
+        return null;
+      }
+      return data;
+    } catch (err) {
+      console.error('Unexpected profile fetch error:', err);
+      return null;
     }
   };
 
   useEffect(() => {
     let mounted = true;
 
-    // Set a maximum load time of 4 seconds
+    // Safety timeout: stop loading after 3 seconds no matter what
     const safetyTimer = setTimeout(() => {
-      if (mounted) setLoading(false);
-    }, 4000);
+      if (mounted) {
+        setLoading(false);
+      }
+    }, 3000);
 
-    const checkSession = async () => {
+    const initialize = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!mounted) return;
 
         if (session?.user) {
           setUser(session.user);
-          const { data } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .maybeSingle();
-          if (mounted) setProfile(data);
+          const p = await fetchProfile(session.user.id);
+          if (mounted) setProfile(p);
         } else {
           setUser(null);
           setProfile(null);
         }
       } catch (err) {
-        console.error('Auth check error:', err);
+        console.error('Initialization error:', err);
       } finally {
         if (mounted) setLoading(false);
       }
     };
 
-    checkSession();
+    initialize();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
       
       if (session?.user) {
         setUser(session.user);
-        const { data } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .maybeSingle();
+        const p = await fetchProfile(session.user.id);
         if (mounted) {
-          setProfile(data);
+          setProfile(p);
           setLoading(false);
         }
       } else {

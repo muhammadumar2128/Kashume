@@ -18,20 +18,9 @@ const Login = () => {
     setError('');
     setLoading(true);
     try {
-      const { user: authUser } = await login(email, password);
-      
-      // Fetch profile to check is_admin
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('is_admin')
-        .eq('id', authUser.id)
-        .maybeSingle();
-
-      if (profileError || !profile || !profile.is_admin) {
-        await logout(); // Kick them out if not admin or profile missing
-        throw new Error('Access denied. No admin profile found for this account.');
-      }
-
+      await login(email, password);
+      // We navigate immediately. ProtectedRoute will handle the admin check 
+      // once the AuthContext updates the user/profile state.
       navigate('/admin');
     } catch (err) {
       setError(err.message || 'Failed to authenticate with the Sanctum');

@@ -96,32 +96,31 @@ const AdminDashboard = () => {
 
   const fetchData = async () => {
     setLoading(true);
+    // Timeout for the entire fetch operation
+    const fetchTimeout = setTimeout(() => {
+      if (loading) {
+        setLoading(false);
+        showNotification("Data retrieval is taking longer than expected.", "error");
+      }
+    }, 8000);
+
     try {
       if (activeTab === 'inventory') {
-        // Try fetching products without the join first to see if it's the join causing the 500
         const { data: productsData, error: pError } = await supabase
           .from('products')
           .select('*, categories(name)')
           .order('created_at', { ascending: false });
         
         if (pError) {
-          console.error("Products Fetch Error:", pError);
-          // Fallback to simple select if join fails
           const { data: simpleData } = await supabase.from('products').select('*').order('created_at', { ascending: false });
           setProducts(simpleData || []);
-          showNotification("Product join failed, showing simplified view", "error");
         } else {
           setProducts(productsData || []);
         }
 
-        const { data: catData, error: cError } = await supabase.from('categories').select('*').order('name');
-        if (cError) console.error("Categories Fetch Error:", cError);
+        const { data: catData } = await supabase.from('categories').select('*').order('name');
         setCategories(catData || []);
 
-      } else if (activeTab === 'categories') {
-        const { data, error } = await supabase.from('categories').select('*').order('name');
-        if (error) throw error;
-        setCategories(data || []);
       } else if (activeTab === 'orders') {
         const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
         if (error) throw error;
@@ -138,8 +137,10 @@ const AdminDashboard = () => {
     } catch (err) {
       console.error("Dashboard Fetch Error:", err);
       showNotification(err.message, 'error');
+    } finally {
+      clearTimeout(fetchTimeout);
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const showNotification = (message, type = 'success') => {
