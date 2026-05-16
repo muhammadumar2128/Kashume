@@ -10,4 +10,14 @@ if (supabaseUrl && supabaseUrl.includes('placeholder')) {
   console.warn('SUPABASE_CONFIG_WARNING: Using placeholder URL. Database connection will not work.');
 }
 
-export const supabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseAnonKey || 'placeholder');
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co', 
+  supabaseAnonKey || 'placeholder',
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+  }
+);

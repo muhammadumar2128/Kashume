@@ -243,6 +243,12 @@ const AdminDashboard = () => {
 
     try {
       for (const file of files) {
+        // Explicit check for allowed formats to provide better feedback
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+        if (!allowedTypes.includes(file.type)) {
+          console.warn(`File type ${file.type} might not be supported. Attempting upload anyway.`);
+        }
+
         const fileName = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
         const { error: uploadError } = await supabase.storage
           .from('product-images')
@@ -258,7 +264,7 @@ const AdminDashboard = () => {
       }
 
       setFormData(prev => ({ ...prev, images: newImages }));
-      showNotification(`${files.length} Visual(s) captured successfully`);
+      showNotification(`${files.length} Visual(s) (JPG/PNG/WEBP) captured successfully`);
     } catch (error) {
       showNotification(error.message, 'error');
     } finally {
