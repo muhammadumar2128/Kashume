@@ -25,6 +25,7 @@ const SearchOverlay = ({ isOpen, onClose }) => {
       }
 
       setLoading(true);
+      console.log(`Search: Querying database for "${query}"...`);
       try {
         const { data, error } = await supabase
           .from('products')
@@ -32,16 +33,21 @@ const SearchOverlay = ({ isOpen, onClose }) => {
           .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
           .limit(5);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Search database error:', error);
+          throw error;
+        }
+        
+        console.log(`Search: Found ${data?.length || 0} results.`);
         setResults(data || []);
       } catch (err) {
-        console.error('Search error:', err);
+        console.error('Search catch error:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    const timer = setTimeout(searchProducts, 3000); // Debounce
+    const timer = setTimeout(searchProducts, 300); // Fast 300ms debounce
     return () => clearTimeout(timer);
   }, [query]);
 
