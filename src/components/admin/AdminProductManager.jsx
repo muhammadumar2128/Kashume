@@ -23,11 +23,13 @@ const AdminDashboard = () => {
   useEffect(() => {
     const checkConnection = async () => {
       try {
-        const { error } = await supabase.from('products').select('id', { count: 'exact', head: true }).limit(1);
-        if (error) throw error;
+        const { error, data } = await supabase.from('products').select('id').limit(1);
+        if (error) {
+          console.error("DATABASE CONNECTION FAILED:", error.message, error.details, error.hint);
+          throw error;
+        }
         setDbStatus('online');
       } catch (err) {
-        console.error("DB Status Error:", err);
         setDbStatus('offline');
       }
     };

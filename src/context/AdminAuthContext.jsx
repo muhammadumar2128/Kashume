@@ -19,18 +19,29 @@ export const AdminAuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     setLoading(true);
-    // Hard-coded Master Key check
-    const securePassword = import.meta.env.VITE_ADMIN_PASSWORD || 'kashume2024';
+    try {
+      // We MUST perform a real sign-in so the database (RLS) allows us to see data.
+      // Because we are using 'supabaseAdmin', this session is LOCKED to the admin box
+      // and will NEVER show up in the main shop.
+      const { data, error } = await supabaseAdmin.auth.signInWithPassword({ email, password });
+      
+      if (error) throw error;
 
-    // We accept any email now to prevent "User" conflicts, only the password matters.
-    if (password === securePassword) {
-      localStorage.setItem('kashume-master-protocol-key', securePassword);
+      // Verify they are actually an admin in the profiles table
+      const { data: profileData } = await supabaseAdmin.from('profiles').select('is_admin').eq('id', data.user.id).maybeSingle();
+      
+      if (!profileData?.is_admin) {
+        await supabaseAdmin.auth.signOut();
+        throw new Error('Access Denied: You do not have Sanctum privileges.');
+      }
+
       setIsAdmin(true);
       setLoading(false);
       return { success: true };
-    } else {
+    } catch (err) {
+      console.error('Sanctum Login Error:', err);
       setLoading(false);
-      return { success: false, error: 'Master Key Rejected by Sanctum' };
+      return { success: false, error: err.message };
     }
   };
 
