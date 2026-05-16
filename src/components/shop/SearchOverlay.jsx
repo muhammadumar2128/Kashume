@@ -8,18 +8,29 @@ import LazyImage from '../ui/LazyImage';
 const SearchOverlay = ({ isOpen, onClose }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
+  const [trending, setTrending] = useState([]);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
-    if (isOpen && inputRef.current) {
-      inputRef.current.focus();
+    if (isOpen) {
+      if (inputRef.current) inputRef.current.focus();
+      fetchTrending();
     }
   }, [isOpen]);
 
+  const fetchTrending = async () => {
+    try {
+      const { data } = await supabase.from('products').select('name').limit(4);
+      if (data) setTrending(data.map(p => p.name));
+    } catch (err) {
+      console.error('Error fetching trending:', err);
+    }
+  };
+
   useEffect(() => {
     const searchProducts = async () => {
-      if (query.length < 2) {
+      if (query.trim().length < 2) {
         setResults([]);
         return;
       }
@@ -27,27 +38,25 @@ const SearchOverlay = ({ isOpen, onClose }) => {
       setLoading(true);
       console.log(`Search: Querying database for "${query}"...`);
       try {
+        // Search by Name or Description (Case Insensitive)
         const { data, error } = await supabase
           .from('products')
           .select('*')
           .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
-          .limit(5);
+          .limit(6);
 
-        if (error) {
-          console.error('Search database error:', error);
-          throw error;
-        }
+        if (error) throw error;
         
-        console.log(`Search: Found ${data?.length || 0} results.`);
+        console.log(`Search: Found ${data?.length || 0} results for "${query}"`);
         setResults(data || []);
       } catch (err) {
-        console.error('Search catch error:', err);
+        console.error('Search query failed:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    const timer = setTimeout(searchProducts, 300); // Fast 300ms debounce
+    const timer = setTimeout(searchProducts, 350);
     return () => clearTimeout(timer);
   }, [query]);
 
@@ -95,11 +104,12 @@ const SearchOverlay = ({ isOpen, onClose }) => {
               <AnimatePresence mode="wait">
                 {results.length > 0 ? (
                   <motion.div 
+                    key="results"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16"
                   >
-                    {results.map((product, idx) => (
+                    {results.map((product) => (
                       <Link 
                         key={product.id} 
                         to={`/product/${product.id}`}
@@ -122,8 +132,9 @@ const SearchOverlay = ({ isOpen, onClose }) => {
                       </Link>
                     ))}
                   </motion.div>
-                ) : query.length >= 2 && !loading ? (
+                ) : query.trim().length >= 2 && !loading ? (
                   <motion.div 
+                    key="no-results"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="text-center py-24"
@@ -132,18 +143,19 @@ const SearchOverlay = ({ isOpen, onClose }) => {
                   </motion.div>
                 ) : (
                   <motion.div 
+                    key="suggestions"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="grid grid-cols-1 md:grid-cols-3 gap-8"
                   >
                     <div className="space-y-4">
-                      <h4 className="text-[10px] uppercase tracking-[0.4em] text-gold font-bold">Trending</h4>
-                      <div className="space-y-2 flex flex-col items-start">
-                        {['Intero HIM', 'Intero HER', 'Discovery Set'].map(term => (
+                      <h4 className="text-[10px] uppercase tracking-[0.4em] text-gold font-bold">Recommended</h4>
+                      <div className="space-y-3 flex flex-col items-start">
+                        {(trending.length > 0 ? trending : ['Intero HIM', 'Intero HER']).map(term => (
                           <button 
                             key={term}
                             onClick={() => setQuery(term)}
-                            className="text-xs uppercase tracking-widest text-charcoal/60 hover:text-gold transition-colors"
+                            className="text-xs uppercase tracking-widest text-charcoal/60 hover:text-gold transition-colors font-bold text-left border-b border-transparent hover:border-gold"
                           >
                             {term}
                           </button>
