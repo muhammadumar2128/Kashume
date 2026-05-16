@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { useAdminAuth } from '../../context/AdminAuthContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Lock, Mail, Loader2, AlertCircle } from 'lucide-react';
-import { supabase } from '../../lib/supabaseClient';
+import { supabaseAdmin } from '../../lib/supabaseAdminClient';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, logout } = useAuth();
+  const [error, setError] = useState('');
+  const { login, logout } = useAdminAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -20,10 +20,10 @@ const Login = () => {
     try {
       const { data, error } = await login(email, password);
       if (error) throw error;
-      
+
       // Fetch profile to verify admin status before navigating
-      const { data: profileData } = await supabase.from('profiles').select('is_admin').eq('id', data.user.id).maybeSingle();
-      
+      const { data: profileData } = await supabaseAdmin.from('profiles').select('is_admin').eq('id', data.user.id).maybeSingle();
+
       if (!profileData?.is_admin) {
         await logout();
         throw new Error('Access Denied: You do not have Sanctum privileges.');

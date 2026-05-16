@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabaseClient';
-import { useAuth } from '../../context/AuthContext';
+import { supabaseAdmin as supabase } from '../../lib/supabaseAdminClient';
+import { useAdminAuth as useAuth } from '../../context/AdminAuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Plus, Trash2, Edit, Save, X, Image as ImageIcon, 
