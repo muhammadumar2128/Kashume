@@ -15,6 +15,7 @@ const NewArrivals = () => {
       // Don't fetch if Supabase is not configured
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
+        console.warn('NewArrivals: Supabase URL is missing or placeholder.');
         setProducts([]);
         setLoading(false);
         return;
@@ -28,7 +29,11 @@ const NewArrivals = () => {
           .eq('is_bundle', false)
           .limit(3);
 
-        if (error || !data) {
+        if (error) {
+          console.error('NewArrivals fetch error:', error);
+          setProducts([]);
+        } else if (!data) {
+          console.warn('NewArrivals: No data returned from Supabase.');
           setProducts([]);
         } else {
           // Map database structure to component structure if needed
@@ -42,6 +47,7 @@ const NewArrivals = () => {
           })));
         }
       } catch (err) {
+        console.error('NewArrivals unexpected error:', err);
         setProducts([]);
       } finally {
         setLoading(false);

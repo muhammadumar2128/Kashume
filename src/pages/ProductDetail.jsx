@@ -19,8 +19,10 @@ const ProductDetail = () => {
 
   useEffect(() => {
     const fetchProduct = async () => {
-      // Don't fetch if Supabase is not configured
-      if (import.meta.env.VITE_SUPABASE_URL.includes('placeholder')) {
+      // Safely check if Supabase is configured
+      const url = import.meta.env.VITE_SUPABASE_URL;
+      if (!url || url.includes('placeholder')) {
+        console.warn('ProductDetail: Supabase URL is missing or placeholder.');
         setProduct(null);
         setLoading(false);
         return;
@@ -33,12 +35,17 @@ const ProductDetail = () => {
           .eq('id', id)
           .single();
 
-        if (error || !data) {
+        if (error) {
+          console.error('ProductDetail fetch error:', error);
+          setProduct(null);
+        } else if (!data) {
+          console.warn('ProductDetail: No data returned from Supabase.');
           setProduct(null);
         } else {
           setProduct(data);
         }
       } catch (err) {
+        console.error('ProductDetail unexpected error:', err);
         setProduct(null);
       } finally {
         setLoading(false);

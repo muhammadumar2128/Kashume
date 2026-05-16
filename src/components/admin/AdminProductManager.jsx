@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Plus, Trash2, Edit, Save, X, Image as ImageIcon, 
   Search, Filter, ArrowLeft, Loader2, CheckCircle2, AlertCircle,
@@ -1065,10 +1065,5 @@ const AdminDashboard = () => {
     </div>
   );
 };
-
-// Simple Link component for inside the header if needed
-const Link = ({ to, children, className, ...props }) => (
-  <a href={to} className={className} {...props}>{children}</a>
-);
 
 export default AdminDashboard;

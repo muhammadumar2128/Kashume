@@ -15,8 +15,9 @@ const Home = () => {
 
   useEffect(() => {
     const fetchBundles = async () => {
-      // Don't fetch if Supabase is not configured
-      if (import.meta.env.VITE_SUPABASE_URL.includes('placeholder')) {
+      // Safely check if Supabase is configured
+      const url = import.meta.env.VITE_SUPABASE_URL;
+      if (!url || url.includes('placeholder')) {
         setBundles([]);
         setLoadingBundles(false);
         return;

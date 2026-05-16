@@ -8,7 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId) => {
+  const fetchProfile = async (userId, isRetry = false) => {
     if (!userId) return null;
     try {
       const { data, error } = await supabase
@@ -21,6 +21,19 @@ export const AuthProvider = ({ children }) => {
         console.error('Profile fetch error:', error);
         return null;
       }
+
+      // Only retry if it's a new sign-up and we didn't find the profile yet
+      if (!data && isRetry) {
+        console.log(`Profile not found for ${userId}, retrying once...`);
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        const { data: retryData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .maybeSingle();
+        return retryData;
+      }
+
       return data;
     } catch (err) {
       console.error('Unexpected profile fetch error:', err);
@@ -31,44 +44,34 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let mounted = true;
 
-    // Safety timeout: stop loading after 3 seconds no matter what
-    const safetyTimer = setTimeout(() => {
-      if (mounted) {
-        setLoading(false);
-      }
-    }, 3000);
-
-    const initialize = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!mounted) return;
-
-        if (session?.user) {
-          setUser(session.user);
-          const p = await fetchProfile(session.user.id);
-          if (mounted) setProfile(p);
-        } else {
-          setUser(null);
-          setProfile(null);
-        }
-      } catch (err) {
-        console.error('Initialization error:', err);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-
-    initialize();
-
+    // Supabase fires the first event (INITIAL_SESSION) immediately upon subscription
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
       
+      console.log('Auth event:', event, session?.user?.email);
+      
       if (session?.user) {
         setUser(session.user);
-        const p = await fetchProfile(session.user.id);
-        if (mounted) {
-          setProfile(p);
-          setLoading(false);
+        // We only show the global loading state for the INITIAL_SESSION check
+        // Subsequent events (like SIGNED_IN) might already have a user/profile
+        const isNewSignUp = event === 'SIGNED_UP';
+        
+        try {
+          const p = await fetchProfile(session.user.id, isNewSignUp);
+          if (mounted) {
+            setProfile(p);
+            // If we have a user but NO profile after retries, it's a ghost/broken session
+            if (!p && event === 'INITIAL_SESSION') {
+              console.warn('Ghost session detected. Clearing...');
+              await supabase.auth.signOut();
+              setUser(null);
+              setProfile(null);
+            }
+          }
+        } catch (err) {
+          console.error('Auth check error:', err);
+        } finally {
+          if (mounted) setLoading(false);
         }
       } else {
         setUser(null);
@@ -77,37 +80,66 @@ export const AuthProvider = ({ children }) => {
       }
     });
 
+    // Safety fallback: if no event fires within 5 seconds, stop loading
+    const timer = setTimeout(() => {
+      if (mounted && loading) {
+        console.warn('Auth check timed out.');
+        setLoading(false);
+      }
+    }, 5000);
+
     return () => {
       mounted = false;
-      clearTimeout(safetyTimer);
+      clearTimeout(timer);
       subscription.unsubscribe();
     };
   }, []);
 
   const login = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    return data;
+    try {
+      // Don't set global loading here to avoid blocking entire UI, 
+      // let the login page handle its own local loading state
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
   };
 
   const register = async (email, password, fullName, phone) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          phone: phone,
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            phone: phone,
+          },
         },
-      },
-    });
-    if (error) throw error;
-    return data;
+      });
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
   };
 
   const logout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Force immediate state reset and redirect
+      setUser(null);
+      setProfile(null);
+      setLoading(false);
+      window.location.href = '/';
+    }
   };
 
   const updatePassword = async (newPassword) => {

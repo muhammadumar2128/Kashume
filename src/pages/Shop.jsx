@@ -14,9 +14,12 @@ const Shop = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      // Don't fetch if Supabase is not configured
-      if (import.meta.env.VITE_SUPABASE_URL.includes('placeholder')) {
+      // Safely check if Supabase is configured
+      const url = import.meta.env.VITE_SUPABASE_URL;
+      if (!url || url.includes('placeholder')) {
+        console.warn('Shop: Supabase URL is missing or placeholder.');
         setProducts([]);
+        setFilteredProducts([]);
         setLoading(false);
         return;
       }
@@ -28,7 +31,12 @@ const Shop = () => {
           .eq('is_bundle', false)
           .order('created_at', { ascending: false });
 
-        if (error || !data) {
+        if (error) {
+          console.error('Shop fetch error:', error);
+          setProducts([]);
+          setFilteredProducts([]);
+        } else if (!data) {
+          console.warn('Shop: No data returned from Supabase.');
           setProducts([]);
           setFilteredProducts([]);
         } else {
@@ -36,6 +44,7 @@ const Shop = () => {
           setFilteredProducts(data);
         }
       } catch (err) {
+        console.error('Shop unexpected error:', err);
         setProducts([]);
         setFilteredProducts([]);
       } finally {

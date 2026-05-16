@@ -15,7 +15,9 @@ const Bundles = () => {
   useEffect(() => {
     const fetchBundles = async () => {
       // Don't fetch if Supabase is not configured
-      if (import.meta.env.VITE_SUPABASE_URL.includes('placeholder')) {
+      const url = import.meta.env.VITE_SUPABASE_URL;
+      if (!url || url.includes('placeholder')) {
+        console.warn('Bundles: Supabase URL is missing or placeholder.');
         setBundles([]);
         setLoading(false);
         return;
@@ -27,7 +29,11 @@ const Bundles = () => {
           .select('*')
           .eq('is_bundle', true);
 
-        if (error || !data) {
+        if (error) {
+          console.error('Bundles fetch error:', error);
+          setBundles([]);
+        } else if (!data) {
+          console.warn('Bundles: No data returned from Supabase.');
           setBundles([]);
         } else {
           // Transform products that are bundles to the bundle format
@@ -44,6 +50,7 @@ const Bundles = () => {
           setBundles(dynamicBundles);
         }
       } catch (err) {
+        console.error('Bundles unexpected error:', err);
         setBundles([]);
       } finally {
         setLoading(false);
