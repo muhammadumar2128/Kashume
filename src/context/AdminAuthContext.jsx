@@ -19,18 +19,18 @@ export const AdminAuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     setLoading(true);
-    // Hard-coded check against the environment variable
-    const secureEmail = 'kashume@gmail.com';
+    // Hard-coded Master Key check
     const securePassword = import.meta.env.VITE_ADMIN_PASSWORD || 'kashume2024';
 
-    if (email === secureEmail && password === securePassword) {
+    // We accept any email now to prevent "User" conflicts, only the password matters.
+    if (password === securePassword) {
       localStorage.setItem('kashume-master-protocol-key', securePassword);
       setIsAdmin(true);
       setLoading(false);
       return { success: true };
     } else {
       setLoading(false);
-      return { success: false, error: 'Invalid Sanctum Credentials' };
+      return { success: false, error: 'Master Key Rejected by Sanctum' };
     }
   };
 

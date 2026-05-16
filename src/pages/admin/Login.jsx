@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Lock, Mail, Loader2, AlertCircle } from 'lucide-react';
+import { Lock, Mail, Loader2, AlertCircle, ShieldAlert } from 'lucide-react';
 import { supabaseAdmin } from '../../lib/supabaseAdminClient';
 
 const Login = () => {
@@ -12,6 +12,15 @@ const Login = () => {
   const [error, setError] = useState('');
   const { login, logout } = useAdminAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // FORCE NUKE: When this page loads, we clear any ghost sessions to prevent "Auto-Login" collapse
+    Object.keys(localStorage).forEach(key => {
+      if (key.includes('sb-') || key.includes('auth-token')) {
+        localStorage.removeItem(key);
+      }
+    });
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,6 +56,9 @@ const Login = () => {
             <div className="w-8 h-[1px] bg-gold/40" />
             <p className="text-[10px] uppercase tracking-[0.5em] text-gold font-bold">Admin Sanctum</p>
             <div className="w-8 h-[1px] bg-gold/40" />
+          </div>
+          <div className="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-charcoal text-gold text-[8px] uppercase tracking-widest rounded-full font-black">
+             <ShieldAlert size={10} /> Sanctum Protocol v2.0 (Active)
           </div>
         </div>
 
