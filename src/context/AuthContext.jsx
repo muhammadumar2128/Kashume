@@ -89,10 +89,22 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setProfile(null);
-    window.location.href = '/';
+    try {
+      // Forcefully clear session locally even if the server request fails or hangs
+      await Promise.race([
+        supabase.auth.signOut(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Signout timeout')), 3000))
+      ]);
+    } catch (err) {
+      console.warn('Logout network request failed or timed out, clearing local session anyway', err);
+    } finally {
+      setUser(null);
+      setProfile(null);
+      // We use a small timeout to let React updates process before the hard redirect
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
+    }
   };
 
   const updatePassword = async (newPassword) => {
