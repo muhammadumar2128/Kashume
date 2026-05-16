@@ -201,44 +201,45 @@ const AdminDashboard = () => {
     
     let table = activeTab === 'inventory' ? 'products' : activeTab === 'promos' ? 'promocodes' : activeTab;
     
-    // Create a clean payload copy
-    let payload = { ...formData };
-    
-    // Always remove ID from payload because we don't want to update the primary key
-    delete payload.id;
+    let payload = {};
 
-    // Clean up payload for 'products' table
+    // STRICT WHITELISTING to prevent Supabase hanging on unknown/complex data types
     if (activeTab === 'inventory') {
-      payload.price = parseFloat(payload.price);
-      payload.original_price = payload.original_price ? parseFloat(payload.original_price) : null;
-      payload.stock = parseInt(payload.stock);
-      
-      // CRITICAL: Supabase will reject the insert if it sees columns that don't exist
-      // like 'categories' which is a joined object from the SELECT query.
-      delete payload.categories;
-      delete payload.created_at; // Usually handled by DB
-      delete payload.updated_at;
-    }
-
-    if (activeTab === 'faqs') {
-      payload.display_order = parseInt(payload.display_order) || 0;
+      payload = {
+        name: formData.name,
+        price: parseFloat(formData.price),
+        description: formData.description,
+        stock: parseInt(formData.stock),
+        category_id: formData.category_id,
+        gender: formData.gender,
+        is_new_arrival: formData.is_new_arrival,
+        is_bundle: formData.is_bundle,
+        original_price: formData.original_price ? parseFloat(formData.original_price) : null,
+        scent_notes: formData.scent_notes,
+        performance: formData.performance,
+        shipping: formData.shipping,
+        images: formData.images
+      };
+    } else if (activeTab === 'categories') {
+      payload = { name: formData.name, slug: formData.slug };
+    } else if (activeTab === 'promos') {
+      payload = { code: formData.code, discount: formData.discount, expiry_date: formData.expiry_date };
+    } else if (activeTab === 'faqs') {
+      payload = { question: formData.question, answer: formData.answer, display_order: parseInt(formData.display_order) || 0 };
     }
 
     try {
-      console.log("Preparing to send payload to Supabase...", payload);
+      console.log("Sending explicit payload to Supabase:", payload);
       let result;
       
-      const dbPromise = editingItem 
-        ? supabase.from(table).update(payload).eq('id', editingItem.id)
-        : supabase.from(table).insert([payload]);
+      // Native await without Promise.race to avoid masking internal Supabase JS errors
+      if (editingItem) {
+        result = await supabase.from(table).update(payload).eq('id', editingItem.id);
+      } else {
+        result = await supabase.from(table).insert([payload]);
+      }
 
-      // Wrap in a 10-second timeout to prevent infinite hangs
-      result = await Promise.race([
-        dbPromise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Database request timed out after 10 seconds')), 10000))
-      ]);
-
-      console.log("Supabase response received:", result);
+      console.log("Supabase response:", result);
 
       if (result.error) throw result.error;
 
@@ -254,7 +255,6 @@ const AdminDashboard = () => {
         showNotification(err.message || "Failed to save record", 'error');
       }
     } finally {
-      console.log("Save operation completed, removing loading state.");
       setLoading(false);
     }
   };
