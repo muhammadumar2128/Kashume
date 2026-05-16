@@ -26,15 +26,23 @@ import Preloader from './components/ui/Preloader';
 import WhatsAppFloat from './components/ui/WhatsAppFloat';
 
 function App() {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    // If we've already shown the preloader in this session, skip it for a faster refresh
+    if (typeof window !== 'undefined') {
+      return !sessionStorage.getItem('kashume-preloader-shown');
+    }
+    return true;
+  });
 
   useEffect(() => {
-    // Artificial loading time for the luxury preloader experience
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, []);
+    if (loading) {
+      const timer = setTimeout(() => {
+        setLoading(false);
+        sessionStorage.setItem('kashume-preloader-shown', 'true');
+      }, 800); // Shorter, snappier preloader
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
 
   return (
     <>
