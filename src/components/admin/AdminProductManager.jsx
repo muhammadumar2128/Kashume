@@ -211,7 +211,8 @@ const AdminDashboard = () => {
 
       if (result.error) throw result.error;
 
-      showNotification(`${activeTab.slice(0, -1)} saved successfully`);
+      const label = activeTab === 'inventory' ? 'Inventory' : activeTab === 'categories' ? 'Category' : activeTab === 'promos' ? 'Promo' : activeTab === 'faqs' ? 'FAQ' : activeTab;
+      showNotification(`${label} saved successfully`);
       setIsModalOpen(false);
       fetchData();
     } catch (err) {
@@ -983,7 +984,7 @@ const AdminDashboard = () => {
 
                 <div className="sticky bottom-0 bg-white pt-6 md:pt-10 pb-4 border-t border-charcoal/20 mt-6 md:mt-10">
                   <button type="submit" className="w-full bg-charcoal text-ivory py-4 md:py-6 text-[9px] md:text-[10px] uppercase tracking-[0.3em] md:tracking-[0.4em] hover:bg-gold hover:text-charcoal transition-all duration-700 shadow-2xl font-bold">
-                    Finalize {activeTab.slice(0, -1)} Protocol
+                    Finalize {activeTab === 'inventory' ? 'Inventory' : activeTab === 'categories' ? 'Category' : activeTab === 'promos' ? 'Promo' : activeTab === 'faqs' ? 'FAQ' : activeTab} Protocol
                   </button>
                 </div>
               </form>
