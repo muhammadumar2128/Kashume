@@ -25,41 +25,50 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let mounted = true;
 
-    // Fast initial check
+    // 1. Initial Session Check (Fast)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (mounted) {
         if (session?.user) {
           setUser(session.user);
+          // Fetch profile in background, don't block the UI
           fetchProfile(session.user.id).then(p => {
-            if (mounted) {
-              setProfile(p);
-              setLoading(false);
-            }
+            if (mounted) setProfile(p);
           });
-        } else {
-          setLoading(false);
         }
+        // Unlock UI immediately after we know the session status
+        setLoading(false);
       }
     });
 
+    // 2. Auth State Change Listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth State Changed:', event, session?.user?.email || 'Guest');
+      console.log('Auth Event:', event, session?.user?.email || 'Guest');
+      
       if (mounted) {
         if (session?.user) {
           setUser(session.user);
+          // Resolve loading immediately if it hasn't been already
+          setLoading(false);
+          
           const p = await fetchProfile(session.user.id);
           if (mounted) setProfile(p);
         } else {
           setUser(null);
           setProfile(null);
+          setLoading(false);
         }
-        setLoading(false);
       }
     });
+
+    // 3. Safety Fallback: Never let the app hang more than 2 seconds for auth
+    const timer = setTimeout(() => {
+      if (mounted) setLoading(false);
+    }, 2000);
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      clearTimeout(timer);
     };
   }, []);
 
