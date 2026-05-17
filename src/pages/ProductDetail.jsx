@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/layout/Navbar';
 import { supabase } from '../lib/supabaseClient';
-import { ShoppingBag, Truck, ShieldCheck, Clock, Phone } from 'lucide-react';
+import { ShoppingBag, Truck, ShieldCheck, Clock, Phone, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import LazyImage from '../components/ui/LazyImage';
@@ -64,6 +64,18 @@ const ProductDetail = () => {
     }
   }, [product?.images]);
 
+  const nextImage = () => {
+    if (product?.images) {
+      setCurrentImageIndex((prev) => (prev + 1) % product.images.length);
+    }
+  };
+
+  const prevImage = () => {
+    if (product?.images) {
+      setCurrentImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
+    }
+  };
+
   const addToCart = () => {
     dispatch({ type: 'ADD_ITEM', payload: product });
   };
@@ -90,7 +102,7 @@ const ProductDetail = () => {
             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
             className="relative"
           >
-            <div className="relative aspect-[4/5] bg-white shadow-2xl shadow-charcoal/10 ring-1 ring-charcoal/15 rounded-3xl overflow-hidden">
+            <div className="relative aspect-[4/5] bg-white shadow-2xl shadow-charcoal/10 ring-1 ring-charcoal/15 rounded-3xl overflow-hidden group">
               <AnimatePresence initial={false}>
                 <motion.div
                   key={currentImageIndex}
@@ -108,14 +120,33 @@ const ProductDetail = () => {
                   />
                 </motion.div>
               </AnimatePresence>
-              
-              {/* Optional: Image Indicators */}
+
+              {/* Manual Navigation Arrows */}
               {displayImages.length > 1 && (
-                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+                <div className="absolute inset-0 z-20 flex items-center justify-between px-6 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
+                  <button 
+                    onClick={prevImage}
+                    className="w-12 h-12 rounded-full bg-charcoal/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-charcoal hover:bg-gold hover:text-white transition-all duration-500 active:scale-90 pointer-events-auto shadow-2xl"
+                  >
+                    <ChevronLeft size={24} strokeWidth={1.5} />
+                  </button>
+                  <button 
+                    onClick={nextImage}
+                    className="w-12 h-12 rounded-full bg-charcoal/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-charcoal hover:bg-gold hover:text-white transition-all duration-500 active:scale-90 pointer-events-auto shadow-2xl"
+                  >
+                    <ChevronRight size={24} strokeWidth={1.5} />
+                  </button>
+                </div>
+              )}
+              
+              {/* Image Indicators */}
+              {displayImages.length > 1 && (
+                <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 z-10">
                   {displayImages.map((_, idx) => (
-                    <div 
+                    <button 
                       key={idx} 
-                      className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${idx === currentImageIndex ? 'bg-gold w-3' : 'bg-charcoal/30'}`}
+                      onClick={() => setCurrentImageIndex(idx)}
+                      className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${idx === currentImageIndex ? 'bg-gold w-4' : 'bg-charcoal/20 hover:bg-charcoal/40'}`}
                     />
                   ))}
                 </div>

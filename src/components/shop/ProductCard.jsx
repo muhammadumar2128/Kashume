@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../../context/CartContext';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
 import LazyImage from '../ui/LazyImage';
 import { useState, useEffect } from 'react';
 
@@ -19,6 +19,18 @@ const ProductCard = ({ product, index, isNew = false }) => {
       return () => clearInterval(interval);
     }
   }, [images.length]);
+
+  const handlePrevImage = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  const handleNextImage = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  };
 
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -59,6 +71,24 @@ const ProductCard = ({ product, index, isNew = false }) => {
               />
             </motion.div>
           </AnimatePresence>
+
+          {/* Manual Navigation Arrows */}
+          {images.length > 1 && (
+            <div className="absolute inset-0 z-20 flex items-center justify-between px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+              <button 
+                onClick={handlePrevImage}
+                className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-white hover:text-charcoal transition-all duration-300 active:scale-90 pointer-events-auto shadow-lg"
+              >
+                <ChevronLeft size={16} strokeWidth={2.5} />
+              </button>
+              <button 
+                onClick={handleNextImage}
+                className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-white hover:text-charcoal transition-all duration-300 active:scale-90 pointer-events-auto shadow-lg"
+              >
+                <ChevronRight size={16} strokeWidth={2.5} />
+              </button>
+            </div>
+          )}
           
           {/* Add to Cart Overlay - Desktop & Tablet */}
           <div className="absolute inset-0 bg-charcoal/0 group-hover:bg-charcoal/20 transition-all duration-700 flex items-end justify-center pb-6 z-10">
