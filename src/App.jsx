@@ -10,6 +10,7 @@ import Bundles from './pages/Bundles';
 import NewArrivals from './pages/NewArrivals';
 import Shop from './pages/Shop';
 import ProductDetail from './pages/ProductDetail';
+import BundleDetail from './pages/BundleDetail';
 import FAQ from './pages/FAQ';
 import ShippingPolicy from './pages/ShippingPolicy';
 import TermsOfService from './pages/TermsOfService';
@@ -64,6 +65,7 @@ function App() {
                   <Route path="/new-arrivals" element={<PageWrapper><NewArrivals /></PageWrapper>} />
                   <Route path="/shop" element={<PageWrapper><Shop /></PageWrapper>} />
                   <Route path="/product/:id" element={<PageWrapper><ProductDetail /></PageWrapper>} />
+                  <Route path="/bundle/:id" element={<PageWrapper><BundleDetail /></PageWrapper>} />
                   <Route path="/faq" element={<PageWrapper><FAQ /></PageWrapper>} />
                   <Route path="/shipping-policy" element={<PageWrapper><ShippingPolicy /></PageWrapper>} />
                   <Route path="/terms-of-service" element={<PageWrapper><TermsOfService /></PageWrapper>} />

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '../components/layout/Navbar';
-import { ShoppingBag, Star, Info, Loader2 } from 'lucide-react';
+import { ShoppingBag, Star, Info, Loader2, ArrowRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabaseClient';
+import { Link } from 'react-router-dom';
 import LazyImage from '../components/ui/LazyImage';
 import SEO from '../components/ui/SEO';
 
@@ -101,14 +102,17 @@ const Bundles = () => {
                 transition={{ duration: 0.8, delay: idx * 0.2 }}
                 className="bg-white p-8 md:p-12 shadow-sm ring-1 ring-charcoal/5 flex flex-col md:flex-row gap-10 items-center rounded-3xl overflow-hidden"
               >
-                <div className="w-full md:w-1/2 aspect-[4/5] overflow-hidden bg-[#F5F2ED] flex items-center justify-center p-4 rounded-2xl">
-                  <LazyImage 
-                    src={bundle.image} 
-                    alt={bundle.name} 
-                    containerClassName="w-full h-full"
-                    className="w-full h-full object-contain hover:scale-105 transition-transform duration-[2s]"
-                  />
-                </div>
+                <Link to={`/bundle/${bundle.id}`} className="w-full md:w-1/2 block group/img">
+                  <div className="aspect-[4/5] overflow-hidden bg-[#F5F2ED] flex items-center justify-center p-4 rounded-2xl relative">
+                    <LazyImage 
+                      src={bundle.image} 
+                      alt={bundle.name} 
+                      containerClassName="w-full h-full"
+                      className="w-full h-full object-contain group-hover/img:scale-105 transition-transform duration-[2s]"
+                    />
+                    <div className="absolute inset-0 bg-charcoal/0 group-hover/img:bg-charcoal/5 transition-colors duration-700" />
+                  </div>
+                </Link>
                 
                 <div className="w-full md:w-1/2 flex flex-col justify-center">
                   <div className="flex items-center gap-2 mb-4 text-gold">
@@ -116,31 +120,37 @@ const Bundles = () => {
                     <span className="text-[9px] uppercase tracking-widest font-bold">Limited Offer</span>
                   </div>
                   
-                  <h3 className="text-2xl font-serif italic mb-4 text-charcoal">{bundle.name}</h3>
+                  <Link to={`/bundle/${bundle.id}`}>
+                    <h3 className="text-2xl md:text-3xl font-serif italic mb-4 text-charcoal hover:text-gold transition-colors font-bold">{bundle.name}</h3>
+                  </Link>
+
                   <div className="flex items-baseline gap-3 mb-6">
-                    <span className="text-xl font-sans text-charcoal">Rs. {bundle.price}</span>
-                    {bundle.originalPrice && <span className="text-sm font-sans text-charcoal/30 line-through">Rs. {bundle.originalPrice}</span>}
+                    <span className="text-xl font-sans text-charcoal font-black">Rs. {bundle.price}</span>
+                    {bundle.originalPrice && <span className="text-sm font-sans text-charcoal/30 line-through font-bold">Rs. {bundle.originalPrice}</span>}
                   </div>
                   
-                  <p className="text-xs text-charcoal/60 leading-relaxed mb-8">
+                  <p className="text-xs text-charcoal/60 leading-relaxed mb-8 font-medium italic">
                     {bundle.description}
                   </p>
                   
                   <ul className="mb-8 space-y-2">
                     {bundle.items && bundle.items.map(item => (
-                      <li key={item} className="text-[10px] uppercase tracking-widest text-charcoal/80 flex items-center gap-2">
-                        <div className="w-1 h-1 bg-gold rounded-full" /> {item}
+                      <li key={item} className="text-[10px] uppercase tracking-widest text-charcoal/80 flex items-center gap-3 font-bold">
+                        <CheckCircle2 size={12} className="text-gold" /> {item}
                       </li>
                     ))}
                   </ul>
 
-                  <div className="bg-gold/5 border border-gold/10 p-3 mb-8 text-center">
-                    <span className="text-[9px] uppercase tracking-[0.2em] text-gold font-bold">{bundle.benefit}</span>
-                  </div>
+                  <Link 
+                    to={`/bundle/${bundle.id}`}
+                    className="text-[9px] uppercase tracking-[0.3em] text-gold font-black mb-8 flex items-center gap-2 group/link"
+                  >
+                    View Protocol <ArrowRight size={12} className="group-hover/link:translate-x-2 transition-transform" />
+                  </Link>
 
                   <button 
                     onClick={() => addToCart(bundle)}
-                    className="w-full bg-charcoal text-ivory py-4 uppercase tracking-[0.3em] text-[10px] hover:bg-gold transition-all flex items-center justify-center gap-3"
+                    className="w-full bg-charcoal text-ivory py-4 uppercase tracking-[0.3em] text-[10px] hover:bg-gold hover:text-charcoal transition-all flex items-center justify-center gap-3 font-bold shadow-xl shadow-charcoal/10"
                   >
                     <ShoppingBag size={14} /> Add Bundle
                   </button>

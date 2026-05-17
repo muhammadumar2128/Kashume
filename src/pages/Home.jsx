@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabaseClient';
 import { motion } from 'framer-motion';
 import { ShoppingBag, Star, Check, Award, Zap, ShieldCheck } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { Link } from 'react-router-dom';
 import ProductCard from '../components/shop/ProductCard';
 import SEO from '../components/ui/SEO';
 
@@ -168,28 +169,30 @@ const Home = () => {
                 className="group relative flex flex-col md:flex-row gap-10 items-start"
               >
                 {/* Image Side - Compact & Framed */}
-                <div className="w-[85%] md:w-[45%] aspect-[3/4] mx-auto md:mx-0 overflow-hidden bg-white shadow-sm ring-1 ring-charcoal/20 relative group/img flex items-center justify-center">
-                  <motion.img 
-                    initial={{ opacity: 0, scale: 1.15, filter: "blur(10px)" }}
-                    whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ 
-                      duration: 3, 
-                      ease: [0.22, 1, 0.36, 1],
-                      delay: idx * 0.4 
-                    }}
-                    src={bundle.image} 
-                    alt={bundle.name} 
-                    className="w-full h-full object-cover grayscale-[10%] group-hover/img:grayscale-0 group-hover/img:scale-105 transition-all duration-[3s] ease-out"
-                  />
-                  
-                  {/* Soft Ambient Shadow */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-charcoal/20 via-transparent to-transparent pointer-events-none" />
+                <Link to={`/bundle/${bundle.id}`} className="w-[85%] md:w-[45%] block group/img">
+                  <div className="aspect-[3/4] overflow-hidden bg-white shadow-sm ring-1 ring-charcoal/20 relative flex items-center justify-center">
+                    <motion.img 
+                      initial={{ opacity: 0, scale: 1.15, filter: "blur(10px)" }}
+                      whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                      viewport={{ once: true, margin: "-100px" }}
+                      transition={{ 
+                        duration: 3, 
+                        ease: [0.22, 1, 0.36, 1],
+                        delay: idx * 0.4 
+                      }}
+                      src={bundle.image} 
+                      alt={bundle.name} 
+                      className="w-full h-full object-cover grayscale-[10%] group-hover/img:grayscale-0 group-hover/img:scale-105 transition-all duration-[3s] ease-out"
+                    />
+                    
+                    {/* Soft Ambient Shadow */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-charcoal/20 via-transparent to-transparent pointer-events-none" />
 
-                  <div className="absolute top-4 left-4 bg-charcoal text-[8px] text-white px-2 py-1 uppercase tracking-widest z-20 font-bold">
-                    Best Value
+                    <div className="absolute top-4 left-4 bg-charcoal text-[8px] text-white px-2 py-1 uppercase tracking-widest z-20 font-bold">
+                      Best Value
+                    </div>
                   </div>
-                </div>
+                </Link>
                 
                 {/* Content Side - Refined Typography */}
                 <div className="w-full md:w-[55%] flex flex-col pt-2">
@@ -198,9 +201,11 @@ const Home = () => {
                     <span className="text-[9px] uppercase tracking-[0.3em] font-bold">Limited Set</span>
                   </div>
                   
-                  <h3 className="text-3xl font-serif italic mb-4 text-charcoal tracking-tight font-bold">
-                    {bundle.name}
-                  </h3>
+                  <Link to={`/bundle/${bundle.id}`}>
+                    <h3 className="text-3xl font-serif italic mb-4 text-charcoal tracking-tight font-bold hover:text-gold transition-colors">
+                      {bundle.name}
+                    </h3>
+                  </Link>
                   
                   <div className="flex items-baseline gap-3 mb-6">
                     <span className="text-xl font-sans text-charcoal font-bold">Rs. {bundle.price}</span>
