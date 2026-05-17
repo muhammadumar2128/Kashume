@@ -24,6 +24,7 @@ const BundleDetail = () => {
         const { data, error } = await supabase
           .from('products')
           .select('*')
+          .eq('status', 'published')
           .eq('id', id)
           .single();
 
@@ -128,33 +129,78 @@ const BundleDetail = () => {
                 )}
               </div>
               
-              <div className="text-sm text-charcoal/90 mb-10 leading-relaxed max-w-md font-medium">
+              <div className="text-base md:text-lg text-charcoal/90 mb-10 leading-relaxed max-w-md font-medium">
                 <p>{bundle.description}</p>
               </div>
 
-              {/* Items Included */}
-              <div className="mb-10 space-y-6">
-                <h3 className="text-[10px] uppercase tracking-widest font-black border-b border-charcoal/10 pb-2">The Ensemble Includes</h3>
-                <ul className="grid grid-cols-1 gap-4">
-                  {(bundle.scent_notes?.top || ["Signature Fragrance", "Artisanal Packaging"]).map((item, idx) => (
-                    <motion.li 
-                      key={idx}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.4 + idx * 0.1 }}
-                      className="text-[11px] uppercase tracking-widest text-charcoal font-bold flex items-center gap-3"
-                    >
-                      <CheckCircle2 size={14} className="text-gold" />
-                      {item}
-                    </motion.li>
-                  ))}
-                </ul>
-              </div>
+              {/* Items Included / Bundle Collection */}
+              {bundle.bundle_items && bundle.bundle_items.length > 0 ? (
+                <div className="mb-10 space-y-6">
+                  <h3 className="text-xs uppercase tracking-widest font-black border-b border-charcoal/10 pb-2">The Ensemble Collection</h3>
+                  <div className="space-y-6">
+                    {bundle.bundle_items.map((item, idx) => (
+                      <motion.div 
+                        key={idx}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 + idx * 0.1 }}
+                        className="bg-[#F5F2ED] p-6 md:p-8 rounded-xl border border-charcoal/10 shadow-sm"
+                      >
+                        <h4 className="text-lg md:text-xl font-serif italic font-bold text-charcoal mb-3">{item.name}</h4>
+                        {item.description && (
+                          <p className="text-xs md:text-sm text-charcoal/80 mb-5 leading-relaxed font-bold">{item.description}</p>
+                        )}
+                        
+                        {(item.scent_notes?.top?.length > 0 || item.scent_notes?.heart?.length > 0 || item.scent_notes?.base?.length > 0) && (
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-5 border-t border-charcoal/10">
+                            {item.scent_notes?.top?.length > 0 && (
+                              <div>
+                                <span className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-gold block font-black mb-1">Top Notes</span>
+                                <p className="text-[10px] md:text-xs font-bold text-charcoal/80">{item.scent_notes.top.join(", ")}</p>
+                              </div>
+                            )}
+                            {item.scent_notes?.heart?.length > 0 && (
+                              <div>
+                                <span className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-gold block font-black mb-1">Heart Notes</span>
+                                <p className="text-[10px] md:text-xs font-bold text-charcoal/80">{item.scent_notes.heart.join(", ")}</p>
+                              </div>
+                            )}
+                            {item.scent_notes?.base?.length > 0 && (
+                              <div>
+                                <span className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-gold block font-black mb-1">Base Notes</span>
+                                <p className="text-[10px] md:text-xs font-bold text-charcoal/80">{item.scent_notes.base.join(", ")}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="mb-10 space-y-6">
+                  <h3 className="text-xs uppercase tracking-widest font-black border-b border-charcoal/10 pb-2">The Ensemble Includes</h3>
+                  <ul className="grid grid-cols-1 gap-4">
+                    {(bundle.scent_notes?.top || ["Signature Fragrance", "Artisanal Packaging"]).map((item, idx) => (
+                      <motion.li 
+                        key={idx}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.4 + idx * 0.1 }}
+                        className="text-sm md:text-base uppercase tracking-widest text-charcoal font-bold flex items-center gap-3"
+                      >
+                        <CheckCircle2 size={14} className="text-gold" />
+                        {item}
+                      </motion.li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* Benefit Badge */}
               <div className="mb-10 p-4 bg-gold/10 border-l-4 border-gold">
-                 <span className="text-[9px] uppercase tracking-[0.2em] text-gold font-black block">Exclusive Protocol</span>
-                 <p className="text-[11px] text-charcoal/70 font-bold mt-1 uppercase tracking-widest">{bundle.shipping || "Complimentary Express Delivery"}</p>
+                 <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-gold font-black block">Exclusive Protocol</span>
+                 <p className="text-sm md:text-base text-charcoal/70 font-bold mt-1 uppercase tracking-widest">{bundle.shipping || "Complimentary Express Delivery"}</p>
               </div>
 
               <div className="flex flex-col gap-4 mb-10">

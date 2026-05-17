@@ -28,6 +28,7 @@ const Bundles = () => {
         const { data, error } = await supabase
           .from('products')
           .select('*')
+          .eq('status', 'published')
           .eq('is_bundle', true);
 
         if (error) {

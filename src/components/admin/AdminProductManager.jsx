@@ -80,10 +80,10 @@ const AdminDashboard = () => {
     status: 'published',
     original_price: '',
     scent_notes: { top: [], heart: [], base: [] },
+    bundle_items: [],
     performance: { longevity: 'Long Lasting', sillage: 'Strong' },
     shipping: 'All Over Pakistan Product can take 3-4 days to deliver. Delivery charges are Rs.199. Free delivery for orders above 3000.',
     images: []
-  };
   };
 
   const initialFaqState = {
@@ -166,6 +166,7 @@ const AdminDashboard = () => {
         ...initialProductState,
         ...item,
         scent_notes: item.scent_notes || initialProductState.scent_notes,
+        bundle_items: item.bundle_items || initialProductState.bundle_items,
         performance: item.performance || initialProductState.performance,
         shipping: item.shipping || initialProductState.shipping
       } : initialProductState);
@@ -223,6 +224,7 @@ const AdminDashboard = () => {
         status: formData.status || 'published',
         original_price: formData.original_price ? parseFloat(formData.original_price) : null,
         scent_notes: formData.scent_notes,
+        bundle_items: formData.bundle_items || [],
         performance: formData.performance,
         shipping: formData.shipping,
         images: formData.images
@@ -397,6 +399,39 @@ const AdminDashboard = () => {
         [type]: notesArray
       }
     });
+  };
+
+  const addBundleItem = () => {
+    setFormData(prev => ({
+      ...prev,
+      bundle_items: [...(prev.bundle_items || []), { name: '', description: '', scent_notes: { top: [], heart: [], base: [] } }]
+    }));
+  };
+
+  const removeBundleItem = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      bundle_items: prev.bundle_items.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleBundleItemChange = (index, field, value) => {
+    const newItems = [...(formData.bundle_items || [])];
+    newItems[index] = { ...newItems[index], [field]: value };
+    setFormData(prev => ({ ...prev, bundle_items: newItems }));
+  };
+
+  const handleBundleItemNoteChange = (index, type, value) => {
+    const notesArray = value.split(',').map(n => n.trim()).filter(n => n !== '');
+    const newItems = [...(formData.bundle_items || [])];
+    newItems[index] = {
+      ...newItems[index],
+      scent_notes: {
+        ...newItems[index].scent_notes,
+        [type]: notesArray
+      }
+    };
+    setFormData(prev => ({ ...prev, bundle_items: newItems }));
   };
 
   return (
@@ -917,31 +952,99 @@ const AdminDashboard = () => {
                       </div>
                     </div>
 
-                    {/* Narrative */}
-                    <div className="space-y-2">
-                      <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Scent Narrative (Description)</label>
-                      <textarea className="w-full border-2 border-charcoal/40 p-3 md:p-4 text-[10px] md:text-xs font-bold leading-relaxed outline-none focus:border-gold h-32 resize-none italic bg-[#F5F2ED] rounded-xl" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
-                    </div>
+                    {/* Narrative & Notes OR Bundle Items Builder */}
+                    {!formData.is_bundle ? (
+                      <>
+                        <div className="space-y-2">
+                          <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Scent Narrative (Description)</label>
+                          <textarea className="w-full border-2 border-charcoal/40 p-3 md:p-4 text-[10px] md:text-xs font-bold leading-relaxed outline-none focus:border-gold h-32 resize-none italic bg-[#F5F2ED] rounded-xl" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
+                        </div>
 
-                    {/* Olfactory Pyramid */}
-                    <div className="space-y-6">
-                      <h4 className="text-[9px] md:text-[10px] uppercase tracking-[0.4em] font-bold text-gold border-b-2 border-gold/50 pb-2 flex items-center gap-2">
-                        <Droplets size={12} /> Olfactory Pyramid
-                      </h4>
-                      <div className="grid grid-cols-1 gap-4 md:gap-6">
-                        {['top', 'heart', 'base'].map(type => (
-                          <div key={type} className="space-y-2">
-                            <label className="text-[8px] md:text-[9px] uppercase tracking-widest text-charcoal font-bold block capitalize">{type} Notes</label>
-                            <input 
-                              placeholder="Comma separated: Saffron, Bergamot, Jasmine..."
-                              className="w-full border-b-2 border-charcoal/40 p-2 text-[10px] md:text-xs focus:border-gold outline-none bg-[#F5F2ED] font-bold" 
-                              value={formData.scent_notes?.[type]?.join(', ') || ''} 
-                              onChange={e => handleNoteChange(type, e.target.value)} 
-                            />
+                        <div className="space-y-6">
+                          <h4 className="text-[9px] md:text-[10px] uppercase tracking-[0.4em] font-bold text-gold border-b-2 border-gold/50 pb-2 flex items-center gap-2">
+                            <Droplets size={12} /> Olfactory Pyramid
+                          </h4>
+                          <div className="grid grid-cols-1 gap-4 md:gap-6">
+                            {['top', 'heart', 'base'].map(type => (
+                              <div key={type} className="space-y-2">
+                                <label className="text-[8px] md:text-[9px] uppercase tracking-widest text-charcoal font-bold block capitalize">{type} Notes</label>
+                                <input 
+                                  placeholder="Comma separated: Saffron, Bergamot, Jasmine..."
+                                  className="w-full border-b-2 border-charcoal/40 p-2 text-[10px] md:text-xs focus:border-gold outline-none bg-[#F5F2ED] font-bold" 
+                                  value={formData.scent_notes?.[type]?.join(', ') || ''} 
+                                  onChange={e => handleNoteChange(type, e.target.value)} 
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="space-y-6">
+                        <div className="flex justify-between items-center border-b-2 border-gold/50 pb-2">
+                          <h4 className="text-[9px] md:text-[10px] uppercase tracking-[0.4em] font-bold text-gold flex items-center gap-2">
+                            <Package size={12} /> Bundle Items Builder
+                          </h4>
+                          <button 
+                            type="button" 
+                            onClick={addBundleItem}
+                            className="text-[8px] md:text-[9px] uppercase tracking-widest bg-charcoal text-white px-3 py-1.5 rounded hover:bg-gold transition-colors font-bold"
+                          >
+                            + Add Perfume
+                          </button>
+                        </div>
+
+                        {(formData.bundle_items || []).map((item, index) => (
+                          <div key={index} className="p-4 border-2 border-charcoal/10 rounded-xl bg-white space-y-4 relative">
+                            <button 
+                              type="button" 
+                              onClick={() => removeBundleItem(index)}
+                              className="absolute top-4 right-4 text-red-500 hover:text-red-700 transition-colors"
+                            >
+                              <X size={16} />
+                            </button>
+                            
+                            <div className="space-y-2 pr-8">
+                              <label className="text-[8px] md:text-[9px] uppercase tracking-widest text-charcoal font-bold block">Perfume Name</label>
+                              <input 
+                                className="w-full border-b-2 border-charcoal/40 p-2 text-[10px] md:text-xs focus:border-gold outline-none bg-transparent font-bold" 
+                                value={item.name} 
+                                onChange={e => handleBundleItemChange(index, 'name', e.target.value)} 
+                                placeholder="e.g., INTERO HER"
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <label className="text-[8px] md:text-[9px] uppercase tracking-widest text-charcoal font-bold block">Specific Description</label>
+                              <textarea 
+                                className="w-full border-2 border-charcoal/20 p-2 text-[10px] md:text-xs font-bold outline-none focus:border-gold h-20 resize-none bg-transparent rounded-lg" 
+                                value={item.description} 
+                                onChange={e => handleBundleItemChange(index, 'description', e.target.value)} 
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              {['top', 'heart', 'base'].map(type => (
+                                <div key={type} className="space-y-2">
+                                  <label className="text-[7px] md:text-[8px] uppercase tracking-widest text-charcoal font-bold block capitalize">{type} Notes</label>
+                                  <input 
+                                    className="w-full border-b-2 border-charcoal/20 p-1.5 text-[9px] md:text-[10px] focus:border-gold outline-none bg-transparent font-bold" 
+                                    value={item.scent_notes?.[type]?.join(', ') || ''} 
+                                    onChange={e => handleBundleItemNoteChange(index, type, e.target.value)} 
+                                    placeholder="Comma separated"
+                                  />
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         ))}
+                        {(!formData.bundle_items || formData.bundle_items.length === 0) && (
+                          <div className="text-center p-6 border-2 border-dashed border-charcoal/20 rounded-xl">
+                            <p className="text-[10px] uppercase tracking-widest text-charcoal/50 font-bold">No perfumes added to this bundle yet.</p>
+                          </div>
+                        )}
                       </div>
-                    </div>
+                    )}
 
                     {/* Performance Profile */}
                     <div className="space-y-6">

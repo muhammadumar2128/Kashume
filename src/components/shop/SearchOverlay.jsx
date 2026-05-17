@@ -21,7 +21,7 @@ const SearchOverlay = ({ isOpen, onClose }) => {
 
   const fetchTrending = async () => {
     try {
-      const { data } = await supabase.from('products').select('name').limit(4);
+      const { data } = await supabase.from('products').select('name').eq('status', 'published').limit(4);
       if (data) setTrending(data.map(p => p.name));
     } catch (err) {
       console.error('Error fetching trending:', err);
@@ -42,6 +42,7 @@ const SearchOverlay = ({ isOpen, onClose }) => {
         const { data, error } = await supabase
           .from('products')
           .select('*')
+          .eq('status', 'published')
           .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
           .limit(6);
 

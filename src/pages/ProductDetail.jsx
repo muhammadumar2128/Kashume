@@ -33,6 +33,7 @@ const ProductDetail = () => {
         const { data, error } = await supabase
           .from('products')
           .select('*')
+          .eq('status', 'published')
           .eq('id', id)
           .single();
 
@@ -178,25 +179,25 @@ const ProductDetail = () => {
               <h1 className="text-4xl md:text-5xl font-light text-charcoal mb-4 tracking-tight uppercase leading-tight font-serif italic">{product.name}</h1>
               <p className="text-xl text-charcoal/80 mb-8 font-sans font-bold">Rs. {product.price}</p>
               
-              <div className="text-sm text-charcoal/90 mb-10 leading-relaxed max-w-md font-medium">
+              <div className="text-base md:text-lg text-charcoal/90 mb-10 leading-relaxed max-w-md font-medium">
                 <p>{product.description}</p>
               </div>
 
               {/* Composition */}
               <div className="mb-10 space-y-6">
-                <h3 className="text-[10px] uppercase tracking-widest font-black border-b-2 border-charcoal/20 pb-2">Olfactory Pyramid</h3>
+                <h3 className="text-xs uppercase tracking-widest font-black border-b-2 border-charcoal/20 pb-2">Olfactory Pyramid</h3>
                 <div className="grid grid-cols-1 gap-4">
                   <div>
-                    <span className="text-[9px] uppercase tracking-[0.2em] text-charcoal/70 block font-bold">Top</span>
-                    <p className="text-xs font-bold italic">{product.scent_notes?.top?.join(", ")}</p>
+                    <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-charcoal/70 block font-bold">Top</span>
+                    <p className="text-sm md:text-base font-bold italic">{product.scent_notes?.top?.join(", ")}</p>
                   </div>
                   <div>
-                    <span className="text-[9px] uppercase tracking-[0.2em] text-charcoal/70 block font-bold">Heart</span>
-                    <p className="text-xs font-bold italic">{product.scent_notes?.heart?.join(", ")}</p>
+                    <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-charcoal/70 block font-bold">Heart</span>
+                    <p className="text-sm md:text-base font-bold italic">{product.scent_notes?.heart?.join(", ")}</p>
                   </div>
                   <div>
-                    <span className="text-[9px] uppercase tracking-[0.2em] text-charcoal/70 block font-bold">Base</span>
-                    <p className="text-xs font-bold italic">{product.scent_notes?.base?.join(", ")}</p>
+                    <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-charcoal/70 block font-bold">Base</span>
+                    <p className="text-sm md:text-base font-bold italic">{product.scent_notes?.base?.join(", ")}</p>
                   </div>
                 </div>
               </div>
@@ -213,19 +214,19 @@ const ProductDetail = () => {
               {/* Performance & Shipping */}
               <div className="grid grid-cols-2 gap-8 pt-10 border-t-2 border-charcoal/10">
                 <div>
-                  <h4 className="text-[9px] uppercase tracking-widest font-black mb-3 flex items-center gap-2">
-                    <Clock size={12} className="text-gold stroke-[3]" /> Performance
+                  <h4 className="text-[10px] md:text-xs uppercase tracking-widest font-black mb-3 flex items-center gap-2">
+                    <Clock size={14} className="text-gold stroke-[3]" /> Performance
                   </h4>
-                  <p className="text-[10px] text-charcoal/80 leading-relaxed font-bold">
+                  <p className="text-xs md:text-sm text-charcoal/80 leading-relaxed font-bold">
                     Longevity: {product.performance?.longevity}<br />
                     Sillage: {product.performance?.sillage}
                   </p>
                 </div>
                 <div>
-                  <h4 className="text-[9px] uppercase tracking-widest font-black mb-3 flex items-center gap-2">
-                    <Truck size={12} className="text-gold stroke-[3]" /> Delivery
+                  <h4 className="text-[10px] md:text-xs uppercase tracking-widest font-black mb-3 flex items-center gap-2">
+                    <Truck size={14} className="text-gold stroke-[3]" /> Delivery
                   </h4>
-                  <p className="text-[10px] text-charcoal/80 leading-relaxed font-bold">
+                  <p className="text-xs md:text-sm text-charcoal/80 leading-relaxed font-bold">
                     {product.shipping}
                   </p>
                 </div>

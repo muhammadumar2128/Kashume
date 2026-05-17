@@ -25,6 +25,7 @@ const NewArrivals = () => {
         const { data, error } = await supabase
           .from('products')
           .select('*')
+          .eq('status', 'published')
           .eq('is_new_arrival', true)
           .eq('is_bundle', false)
           .limit(3);
