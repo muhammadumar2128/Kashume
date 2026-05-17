@@ -375,12 +375,13 @@ const Checkout = () => {
             
             <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
               {state.items.map((item) => (
-                <div key={item.id} className="flex gap-6">
+                <div key={item.cartItemId || item.id} className="flex gap-6">
                   <div className="w-16 h-20 bg-[#FAF9F6] rounded-lg overflow-hidden flex-shrink-0 ring-1 ring-charcoal/10">
                     <img src={item.images?.[0] || item.image} alt={item.name} className="w-full h-full object-cover grayscale-[10%]" />
                   </div>
                   <div className="flex-1 flex flex-col justify-center">
                     <h4 className="text-sm font-serif italic text-charcoal font-bold">{item.name}</h4>
+                    {item.selectedSize && <p className="text-[9px] uppercase tracking-widest text-gold font-bold">{item.selectedSize}</p>}
                     <div className="flex justify-between items-center mt-2">
                       <span className="text-[10px] text-charcoal/60 uppercase tracking-widest font-bold">Qty: {item.quantity}</span>
                       <span className="text-xs font-sans font-black">Rs. {item.price * item.quantity}</span>

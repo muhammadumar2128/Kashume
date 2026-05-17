@@ -81,6 +81,7 @@ const AdminDashboard = () => {
     original_price: '',
     scent_notes: { top: [], heart: [], base: [] },
     bundle_items: [],
+    sizes: [],
     performance: { longevity: 'Long Lasting', sillage: 'Strong' },
     shipping: 'All Over Pakistan Product can take 3-4 days to deliver. Delivery charges are Rs.199. Free delivery for orders above 3000.',
     images: []
@@ -167,6 +168,7 @@ const AdminDashboard = () => {
         ...item,
         scent_notes: item.scent_notes || initialProductState.scent_notes,
         bundle_items: item.bundle_items || initialProductState.bundle_items,
+        sizes: item.sizes || initialProductState.sizes,
         performance: item.performance || initialProductState.performance,
         shipping: item.shipping || initialProductState.shipping
       } : initialProductState);
@@ -225,6 +227,7 @@ const AdminDashboard = () => {
         original_price: formData.original_price ? parseFloat(formData.original_price) : null,
         scent_notes: formData.scent_notes,
         bundle_items: formData.bundle_items || [],
+        sizes: formData.sizes || [],
         performance: formData.performance,
         shipping: formData.shipping,
         images: formData.images
@@ -399,6 +402,30 @@ const AdminDashboard = () => {
         [type]: notesArray
       }
     });
+  };
+
+  const addSize = () => {
+    setFormData(prev => ({
+      ...prev,
+      sizes: [...(prev.sizes || []), { volume: '', price: '' }]
+    }));
+  };
+
+  const removeSize = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      sizes: prev.sizes.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleSizeChange = (index, field, value) => {
+    const newSizes = [...(formData.sizes || [])];
+    if (field === 'price') {
+      newSizes[index] = { ...newSizes[index], [field]: value === '' ? '' : parseFloat(value) };
+    } else {
+      newSizes[index] = { ...newSizes[index], [field]: value };
+    }
+    setFormData(prev => ({ ...prev, sizes: newSizes }));
   };
 
   const addBundleItem = () => {
@@ -900,7 +927,7 @@ const AdminDashboard = () => {
                       </div>
                       <div className="space-y-2">
                         <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Botanical Group</label>
-                        <select className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none transition-all bg-[#F5F2ED] font-bold" value={formData.category_id} onChange={e => setFormData({...formData, category_id: e.target.value})}>
+                        <select className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none transition-all bg-[#F5F2ED] font-bold" value={formData.category_id || ''} onChange={e => setFormData({...formData, category_id: e.target.value})}>
                           <option value="">Select Collection</option>
                           {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
@@ -918,19 +945,68 @@ const AdminDashboard = () => {
                     {/* Value & Scarcity */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                       <div className="space-y-2">
-                        <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Value (PKR)</label>
-                        <input type="number" className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none bg-[#F5F2ED] font-bold" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} />
+                        <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Base Value (PKR)</label>
+                        <input type="number" className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none bg-[#F5F2ED] font-bold" value={formData.price || ''} onChange={e => setFormData({...formData, price: e.target.value})} />
+                        <p className="text-[8px] text-charcoal/50 italic">Acts as 'Starting at' price if sizes exist.</p>
                       </div>
                       <div className="space-y-2">
                         <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Original Value (PKR)</label>
-                        <input type="number" className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none bg-[#F5F2ED] font-bold" value={formData.original_price} onChange={e => setFormData({...formData, original_price: e.target.value})} placeholder="Optional" />
+                        <input type="number" className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none bg-[#F5F2ED] font-bold" value={formData.original_price || ''} onChange={e => setFormData({...formData, original_price: e.target.value})} placeholder="Optional" />
                       </div>
+                    </div>
+
+                    {/* Size Builder */}
+                    <div className="space-y-4 border-l-2 border-gold/30 pl-4 py-2">
+                      <div className="flex justify-between items-center">
+                        <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Volume Variants (Optional)</label>
+                        <button 
+                          type="button" 
+                          onClick={addSize}
+                          className="text-[8px] md:text-[9px] uppercase tracking-widest bg-charcoal text-white px-3 py-1.5 rounded hover:bg-gold transition-colors font-bold flex items-center gap-1"
+                        >
+                          <Plus size={10} /> Add Size
+                        </button>
+                      </div>
+                      
+                      {(formData.sizes || []).map((size, index) => (
+                        <div key={index} className="flex items-end gap-4 bg-white p-3 rounded-lg border border-charcoal/10 relative group">
+                          <div className="flex-1 space-y-1">
+                            <label className="text-[7px] uppercase tracking-widest font-bold text-charcoal/60">Volume (e.g., 50ml)</label>
+                            <input 
+                              className="w-full border-b border-charcoal/20 p-1.5 text-xs focus:border-gold outline-none font-bold" 
+                              value={size.volume} 
+                              onChange={e => handleSizeChange(index, 'volume', e.target.value)} 
+                              placeholder="50ml"
+                            />
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <label className="text-[7px] uppercase tracking-widest font-bold text-charcoal/60">Price (PKR)</label>
+                            <input 
+                              type="number"
+                              className="w-full border-b border-charcoal/20 p-1.5 text-xs focus:border-gold outline-none font-bold" 
+                              value={size.price} 
+                              onChange={e => handleSizeChange(index, 'price', e.target.value)} 
+                              placeholder="5000"
+                            />
+                          </div>
+                          <button 
+                            type="button" 
+                            onClick={() => removeSize(index)}
+                            className="p-2 text-red-400 hover:text-red-600 transition-colors bg-red-50 hover:bg-red-100 rounded-md"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      ))}
+                      {formData.sizes?.length > 0 && (
+                        <p className="text-[8px] italic text-charcoal/50">When sizes exist, the base price acts as the display price on the shop page, but customers must choose a size to add to cart.</p>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                       <div className="space-y-2">
                         <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Inventory Stock</label>
-                        <input type="number" className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none bg-[#F5F2ED] font-bold" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} required />
+                        <input type="number" className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none bg-[#F5F2ED] font-bold" value={formData.stock ?? ''} onChange={e => setFormData({...formData, stock: e.target.value})} required />
                       </div>
                       <div className="flex flex-wrap gap-4 md:gap-6 pt-2 md:pt-6 col-span-1">
                         <div className="flex items-center gap-3">
@@ -957,7 +1033,7 @@ const AdminDashboard = () => {
                       <>
                         <div className="space-y-2">
                           <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Scent Narrative (Description)</label>
-                          <textarea className="w-full border-2 border-charcoal/40 p-3 md:p-4 text-[10px] md:text-xs font-bold leading-relaxed outline-none focus:border-gold h-32 resize-none italic bg-[#F5F2ED] rounded-xl" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
+                          <textarea className="w-full border-2 border-charcoal/40 p-3 md:p-4 text-[10px] md:text-xs font-bold leading-relaxed outline-none focus:border-gold h-32 resize-none italic bg-[#F5F2ED] rounded-xl" value={formData.description || ''} onChange={e => setFormData({...formData, description: e.target.value})} />
                         </div>
 
                         <div className="space-y-6">

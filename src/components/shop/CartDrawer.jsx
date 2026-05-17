@@ -41,19 +41,20 @@ const CartDrawer = ({ isOpen, onClose }) => {
                 </div>
               ) : (
                 state.items.map((item) => (
-                  <div key={item.id} className="flex gap-6 group">
+                  <div key={item.cartItemId || item.id} className="flex gap-6 group">
                     <div className="w-24 h-32 bg-earth/5 overflow-hidden flex-shrink-0">
                       <img src={item.images?.[0] || item.image} alt={item.name} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 py-2 flex flex-col justify-between">
                       <div>
                         <h3 className="text-lg font-light">{item.name}</h3>
+                        {item.selectedSize && <p className="text-[10px] uppercase tracking-widest text-gold font-bold mt-0.5">{item.selectedSize}</p>}
                         <p className="text-[10px] uppercase tracking-widest text-charcoal/40 mt-1">Quantity: {item.quantity}</p>
                       </div>
                       <div className="flex justify-between items-end">
                         <span className="font-sans text-sm">Rs. {item.price}</span>
-                        <button 
-                          onClick={() => dispatch({ type: 'REMOVE_ITEM', payload: item.id })}
+                        <button
+                          onClick={() => dispatch({ type: 'REMOVE_ITEM', payload: item.cartItemId || item.id })}
                           className="text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <Trash2 size={16} />
@@ -62,8 +63,7 @@ const CartDrawer = ({ isOpen, onClose }) => {
                     </div>
                   </div>
                 ))
-              )}
-            </div>
+              )}            </div>
 
             {state.items.length > 0 && (
               <div className="p-8 bg-white border-t border-earth/10">

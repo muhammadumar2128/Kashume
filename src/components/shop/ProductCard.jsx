@@ -35,15 +35,23 @@ const ProductCard = ({ product, index, isNew = false }) => {
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    const cartItem = {
+
+    let cartItem = {
       ...product,
       image: images[0]
     };
-    
+
+    // If product has sizes, default to the first size for quick-add
+    if (product.sizes?.length > 0) {
+      cartItem = {
+        ...cartItem,
+        price: product.sizes[0].price,
+        selectedSize: product.sizes[0].volume
+      };
+    }
+
     dispatch({ type: 'ADD_ITEM', payload: cartItem });
   };
-
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}

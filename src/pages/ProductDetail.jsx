@@ -17,6 +17,15 @@ const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [selectedSize, setSelectedSize] = useState(null);
+
+  useEffect(() => {
+    if (product?.sizes?.length > 0) {
+      setSelectedSize(product.sizes[0]);
+    } else {
+      setSelectedSize(null);
+    }
+  }, [product]);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -78,7 +87,14 @@ const ProductDetail = () => {
   };
 
   const addToCart = () => {
-    dispatch({ type: 'ADD_ITEM', payload: product });
+    dispatch({ 
+      type: 'ADD_ITEM', 
+      payload: {
+        ...product,
+        price: selectedSize ? selectedSize.price : product.price,
+        selectedSize: selectedSize ? selectedSize.volume : null
+      } 
+    });
   };
 
   if (loading) return <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center"><div className="w-8 h-8 border border-gold border-t-transparent rounded-full animate-spin" /></div>;
@@ -177,8 +193,27 @@ const ProductDetail = () => {
             >
               <span className="text-[10px] uppercase tracking-[0.4em] text-gold mb-4 block font-black">{product.category}</span>
               <h1 className="text-4xl md:text-5xl font-light text-charcoal mb-4 tracking-tight uppercase leading-tight font-serif italic">{product.name}</h1>
-              <p className="text-xl text-charcoal/80 mb-8 font-sans font-bold">Rs. {product.price}</p>
+              <p className="text-xl text-charcoal/80 mb-8 font-sans font-bold">Rs. {selectedSize ? selectedSize.price : product.price}</p>
               
+              {/* Size Selector */}
+              {product.sizes && product.sizes.length > 0 && (
+                <div className="mb-8 flex gap-3">
+                  {product.sizes.map((size, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedSize(size)}
+                      className={`px-6 py-2 text-xs md:text-sm uppercase tracking-widest font-bold border-2 transition-all ${
+                        selectedSize?.volume === size.volume 
+                        ? 'border-charcoal bg-charcoal text-ivory' 
+                        : 'border-charcoal/20 text-charcoal hover:border-charcoal/50'
+                      }`}
+                    >
+                      {size.volume}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <div className="text-base md:text-lg text-charcoal/90 mb-10 leading-relaxed max-w-md font-medium">
                 <p>{product.description}</p>
               </div>

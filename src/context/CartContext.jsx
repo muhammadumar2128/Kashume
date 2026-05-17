@@ -5,16 +5,17 @@ const CartContext = createContext();
 const cartReducer = (state, action) => {
   switch (action.type) {
     case 'ADD_ITEM':
-      const existing = state.items.find(i => i.id === action.payload.id);
+      const cartItemId = action.payload.selectedSize ? `${action.payload.id}-${action.payload.selectedSize}` : action.payload.id;
+      const existing = state.items.find(i => (i.cartItemId || i.id) === cartItemId);
       let newItems;
       if (existing) {
-        newItems = state.items.map(i => i.id === action.payload.id ? { ...i, quantity: i.quantity + 1 } : i);
+        newItems = state.items.map(i => (i.cartItemId || i.id) === cartItemId ? { ...i, quantity: i.quantity + 1 } : i);
       } else {
-        newItems = [...state.items, { ...action.payload, quantity: 1 }];
+        newItems = [...state.items, { ...action.payload, quantity: 1, cartItemId }];
       }
       return { ...state, items: newItems, isCartOpen: true };
     case 'REMOVE_ITEM':
-      return { ...state, items: state.items.filter(i => i.id !== action.payload) };
+      return { ...state, items: state.items.filter(i => (i.cartItemId || i.id) !== action.payload) };
     case 'TOGGLE_CART':
       return { ...state, isCartOpen: action.payload ?? !state.isCartOpen };
     case 'SET_BUNDLES':
