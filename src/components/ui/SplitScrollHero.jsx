@@ -25,8 +25,8 @@ const SplitScrollHero = () => {
     });
   }, []);
 
-  const textY = useTransform(scrollYProgress, [0, 1], ["0%", "15%"]);
-  const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "-5%"]);
+  const textY = useTransform(scrollYProgress, [0, 1], ["0%", "10%"]);
+  const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "-2%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
 
   useEffect(() => {
@@ -114,7 +114,7 @@ const SplitScrollHero = () => {
                 src={heroImages[currentImageIndex]} 
                 alt="Kashume Hero" 
                 fetchpriority={currentImageIndex === 0 ? "high" : "auto"}
-                className="w-full h-full object-cover object-top"
+                className="w-full h-full object-cover object-[center_30%]"
               />
               <div className="absolute inset-0 bg-charcoal/[0.02]" />
             </motion.div>
