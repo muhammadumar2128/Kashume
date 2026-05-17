@@ -174,7 +174,7 @@ export default async function handler(req, res) {
       // Email to Owner
       const ownerEmail = await resend.emails.send({
         from: 'Kashume System <system@kashume.com>',
-        to: ['hello@kashume.com'],
+        to: ['hellokashume@gmail.com'],
         subject: `New Scent Reservation: Order #${orderIdShort}`,
         html: adminEmailHtml
       });
