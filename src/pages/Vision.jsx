@@ -70,7 +70,7 @@ const Vision = () => {
     {
       title: "Artisanal Distillation",
       description: "Every essence is a dialogue between nature and the artisan. We distill time, patience, and absolute precision to capture the soul of the plant.",
-      image: "/images/DATA 1.O/hero home 3.png"
+      image: "/images/DATA 1.O/hero section 1.webp"
     },
     {
       title: "Liquid Memories",

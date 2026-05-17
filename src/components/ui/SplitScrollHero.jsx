@@ -7,9 +7,9 @@ const SplitScrollHero = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   const heroImages = [
-    "/images/DATA 1.O/hero home 1.png",
+    "/images/DATA 1.O/hero section 1.webp",
     "/images/DATA 1.O/hero home 2.png",
-    "/images/DATA 1.O/hero home 3.png"
+    "/images/DATA 1.O/hero home 1.png"
   ];
 
   const { scrollYProgress } = useScroll({
