@@ -51,7 +51,7 @@ const Navbar = ({ variant = 'dark' }) => {
             : 'py-8 bg-transparent'
         }`}
       >
-        <div className="container mx-auto px-6 relative flex justify-between items-center h-full">
+        <div className="container mx-auto px-6 relative flex justify-between items-center">
           {/* Left: Navigation Links (Desktop) */}
           <div className={`hidden md:flex flex-1 gap-8 items-center text-[10px] uppercase tracking-[0.3em] font-sans ${subTextColor} transition-colors duration-500`}>
             {navLinks.map((link) => (
@@ -65,15 +65,13 @@ const Navbar = ({ variant = 'dark' }) => {
             ))}
           </div>
 
-          {/* Center: Brand Identity */}
-          <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 text-center pointer-events-auto">
-            <Link 
-              to="/" 
-              className={`text-2xl md:text-4xl font-serif tracking-[0.3em] ${textColor} uppercase transition-all duration-500 hover:scale-105 inline-block font-bold`}
-            >
-              Kashume
-            </Link>
-          </div>
+          {/* Brand Identity - Standard flow on mobile, Absolutely centered on desktop */}
+          <Link 
+            to="/" 
+            className={`text-2xl md:text-3xl font-serif tracking-[0.3em] ${textColor} uppercase transition-all duration-500 hover:scale-105 md:absolute md:left-1/2 md:-translate-x-1/2 md:top-1/2 md:-translate-y-1/2 z-10`}
+          >
+            Kashume
+          </Link>
 
           {/* Right: Functional Icons */}
           <div className={`flex flex-1 gap-4 md:gap-6 items-center justify-end ${textColor} transition-colors duration-500`}>
