@@ -5,6 +5,17 @@ import Skeleton from './Skeleton';
 const LazyImage = ({ src, alt, className, containerClassName }) => {
   const [isLoaded, setIsLoaded] = useState(false);
 
+  // Apply Cloudinary optimizations automatically
+  const getOptimizedSrc = (originalSrc) => {
+    if (!originalSrc || typeof originalSrc !== 'string') return originalSrc;
+    if (originalSrc.includes('res.cloudinary.com')) {
+      return originalSrc.replace('/upload/', '/upload/f_auto,q_auto/');
+    }
+    return originalSrc;
+  };
+
+  const optimizedSrc = getOptimizedSrc(src);
+
   return (
     <div className={`relative overflow-hidden ${containerClassName}`}>
       <AnimatePresence>
@@ -13,7 +24,7 @@ const LazyImage = ({ src, alt, className, containerClassName }) => {
         )}
       </AnimatePresence>
       <motion.img
-        src={src}
+        src={optimizedSrc}
         alt={alt}
         initial={{ opacity: 0 }}
         animate={{ opacity: isLoaded ? 1 : 0 }}
