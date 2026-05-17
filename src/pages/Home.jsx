@@ -65,39 +65,70 @@ const Home = () => {
       <Navbar />
       <SplitScrollHero />
 
-      {/* Signature Section */}
+      {/* Signature Showcase - Editorial Layout */}
       {signatureProducts.length > 0 && (
-        <section className="py-24 md:py-40 bg-charcoal text-ivory relative">
-          <div className="absolute top-0 right-0 w-1/3 h-full bg-gold/5 pointer-events-none" />
+        <section className="py-32 md:py-56 bg-white relative overflow-hidden">
+          {/* Ambient Background Element */}
+          <div className="absolute top-0 right-0 w-[50%] h-full bg-[#F5F2ED]/50 -z-10 translate-x-1/4" />
+          
           <div className="container mx-auto px-6 max-w-7xl">
-            <div className="flex flex-col md:flex-row justify-between items-center mb-20 gap-8">
+            <div className="flex flex-col md:flex-row items-start justify-between mb-24 md:mb-32 gap-12">
+              <div className="max-w-2xl">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 1 }}
+                >
+                  <span className="text-[10px] md:text-[11px] uppercase tracking-[0.6em] text-gold font-black mb-8 block">
+                    The Masterpiece Series
+                  </span>
+                  <h2 className="text-5xl md:text-8xl font-serif italic text-charcoal leading-[0.9] tracking-tighter uppercase">
+                    Signature <br />
+                    <span className="md:ml-24 text-gold/80">Essences</span>
+                  </h2>
+                </motion.div>
+              </div>
               <motion.div 
-                initial={{ opacity: 0, x: -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
-                className="text-center md:text-left"
+                transition={{ delay: 0.5, duration: 1.5 }}
+                className="md:pt-12"
               >
-                <span className="text-[10px] uppercase tracking-[0.6em] text-gold mb-6 block font-black">The Masterpiece</span>
-                <h2 className="text-4xl md:text-6xl font-serif italic tracking-tighter uppercase leading-tight font-bold">Signature <br className="hidden md:block" />Collection</h2>
+                <p className="text-xs md:text-sm text-charcoal/50 max-w-[280px] leading-relaxed uppercase tracking-[0.2em] font-bold italic border-l border-gold/30 pl-8">
+                  "Each bottle is a singular narrative, distilled from the rarest botanical extracts in our archives."
+                </p>
               </motion.div>
-              <motion.p 
-                initial={{ opacity: 0, x: 30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                className="text-ivory/60 max-w-md text-sm md:text-base font-light leading-relaxed text-center md:text-right italic font-medium"
-              >
-                The pinnacle of our olfactory research. Each signature essence is a singular narrative, distilled from the rarest botanical extracts in our archives.
-              </motion.p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-20">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-24 md:gap-y-32">
               {signatureProducts.map((product, idx) => (
-                <div key={product.id} className="relative group">
-                  <ProductCard product={product} index={idx} />
-                  <div className="absolute -top-4 -left-4 z-20">
-                    <Award className="text-gold" size={32} strokeWidth={1} />
+                <motion.div 
+                  key={product.id}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 1.2, delay: idx * 0.2, ease: [0.22, 1, 0.36, 1] }}
+                  className={`relative ${idx === 1 ? 'md:mt-24' : idx === 2 ? 'lg:mt-12' : ''}`}
+                >
+                  <div className="relative group">
+                    <ProductCard product={product} index={idx} />
+                    
+                    {/* Artistic Label */}
+                    <div className="absolute -bottom-6 -right-4 md:-right-8 bg-charcoal text-ivory p-6 md:p-8 shadow-2xl z-20 pointer-events-none ring-1 ring-gold/20">
+                      <div className="space-y-1">
+                        <span className="text-[7px] uppercase tracking-[0.4em] text-gold block font-black">Archive No.</span>
+                        <span className="text-lg font-serif italic block">00{idx + 1} / SE</span>
+                      </div>
+                    </div>
+                    
+                    {/* Floating Motif */}
+                    <div className="absolute -top-6 -left-6 w-12 h-12 border border-gold/10 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-1000">
+                       <Award className="text-gold/20" size={20} strokeWidth={1} />
+                    </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
