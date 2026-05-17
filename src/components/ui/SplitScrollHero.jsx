@@ -114,7 +114,7 @@ const SplitScrollHero = () => {
                 src={heroImages[currentImageIndex]} 
                 alt="Kashume Hero" 
                 fetchpriority={currentImageIndex === 0 ? "high" : "auto"}
-                className="w-full h-full object-cover object-center"
+                className="w-full h-full object-cover object-top"
               />
               <div className="absolute inset-0 bg-charcoal/[0.02]" />
             </motion.div>
