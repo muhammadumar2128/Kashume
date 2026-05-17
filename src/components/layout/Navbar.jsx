@@ -51,27 +51,32 @@ const Navbar = ({ variant = 'dark' }) => {
             : 'py-8 bg-transparent'
         }`}
       >
-        <div className="container mx-auto px-6 flex justify-between items-center">
-          <div className={`hidden md:flex gap-8 items-center text-[10px] uppercase tracking-[0.3em] font-sans ${subTextColor} transition-colors duration-500`}>
+        <div className="container mx-auto px-6 relative flex justify-between items-center h-full">
+          {/* Left: Navigation Links (Desktop) */}
+          <div className={`hidden md:flex flex-1 gap-8 items-center text-[10px] uppercase tracking-[0.3em] font-sans ${subTextColor} transition-colors duration-500`}>
             {navLinks.map((link) => (
               <Link 
                 key={link.name} 
                 to={link.path} 
-                className="hover:text-gold transition-colors duration-300"
+                className="hover:text-gold transition-colors duration-300 whitespace-nowrap"
               >
                 {link.name}
               </Link>
             ))}
           </div>
 
-          <Link 
-            to="/" 
-            className={`text-2xl md:text-3xl font-serif tracking-[0.3em] ${textColor} uppercase transition-all duration-500 hover:scale-105`}
-          >
-            Kashume
-          </Link>
+          {/* Center: Brand Identity */}
+          <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 text-center pointer-events-auto">
+            <Link 
+              to="/" 
+              className={`text-2xl md:text-4xl font-serif tracking-[0.3em] ${textColor} uppercase transition-all duration-500 hover:scale-105 inline-block font-bold`}
+            >
+              Kashume
+            </Link>
+          </div>
 
-          <div className={`flex gap-4 md:gap-6 items-center ${textColor} transition-colors duration-500`}>
+          {/* Right: Functional Icons */}
+          <div className={`flex flex-1 gap-4 md:gap-6 items-center justify-end ${textColor} transition-colors duration-500`}>
             <button 
               onClick={() => setIsSearchOpen(true)}
               className="hover:text-gold transition-colors duration-300 hidden md:block"
