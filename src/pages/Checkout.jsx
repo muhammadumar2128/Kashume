@@ -203,7 +203,7 @@ const Checkout = () => {
           </div>
           <h2 className="text-3xl font-serif italic mb-4">Gratitude.</h2>
           <p className="text-charcoal/60 font-light leading-relaxed mb-8">
-            Your essence has been reserved. A confirmation has been sent to your digital archive.
+            Your order has been successfully placed. A confirmation email has been sent to you.
           </p>
           <div className="text-[10px] uppercase tracking-[0.4em] text-gold font-bold">
             Redirecting to {user ? 'Your Account' : 'Home'}...
@@ -277,7 +277,7 @@ const Checkout = () => {
                   <input 
                     type="email" 
                     name="email"
-                    placeholder="Digital Archive (Email)" 
+                    placeholder="Email Address" 
                     required
                     value={formData.email}
                     onChange={handleInputChange}
@@ -302,7 +302,7 @@ const Checkout = () => {
                 <input 
                   type="text" 
                   name="address"
-                  placeholder="Sanctum Address" 
+                  placeholder="Shipping Address" 
                   required
                   value={formData.address}
                   onChange={handleInputChange}
@@ -321,7 +321,7 @@ const Checkout = () => {
                   <input 
                     type="tel" 
                     name="phone"
-                    placeholder="Contact Frequency (Phone)" 
+                    placeholder="Phone Number" 
                     required
                     value={formData.phone}
                     onChange={handleInputChange}
