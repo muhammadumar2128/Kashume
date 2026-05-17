@@ -77,11 +77,13 @@ const AdminDashboard = () => {
     is_new_arrival: false,
     is_bundle: false,
     is_signature: false,
+    status: 'published',
     original_price: '',
     scent_notes: { top: [], heart: [], base: [] },
     performance: { longevity: 'Long Lasting', sillage: 'Strong' },
     shipping: 'All Over Pakistan Product can take 3-4 days to deliver. Delivery charges are Rs.199. Free delivery for orders above 3000.',
     images: []
+  };
   };
 
   const initialFaqState = {
@@ -218,6 +220,7 @@ const AdminDashboard = () => {
         is_new_arrival: formData.is_new_arrival,
         is_bundle: formData.is_bundle,
         is_signature: formData.is_signature,
+        status: formData.status || 'published',
         original_price: formData.original_price ? parseFloat(formData.original_price) : null,
         scent_notes: formData.scent_notes,
         performance: formData.performance,
@@ -612,6 +615,11 @@ const AdminDashboard = () => {
                             <div>
                               <span className="font-serif italic text-sm md:text-lg block text-charcoal font-bold">{p.name}</span>
                               <div className="flex flex-wrap gap-1 md:gap-2 mt-1">
+                                {p.status === 'draft' && (
+                                  <span className="text-[6px] md:text-[7px] uppercase tracking-widest bg-charcoal/10 text-charcoal/60 px-1 md:px-1.5 py-0.5 font-black rounded-sm border border-charcoal/20">
+                                    Draft
+                                  </span>
+                                )}
                                 {p.is_new_arrival && (
                                   <span className="text-[6px] md:text-[7px] uppercase tracking-widest bg-gold text-charcoal px-1 md:px-1.5 py-0.5 font-bold rounded-sm whitespace-nowrap">
                                     New
@@ -901,6 +909,10 @@ const AdminDashboard = () => {
                         <div className="flex items-center gap-3">
                           <input type="checkbox" id="isSignature" className="w-4 h-4 md:w-5 md:h-5 accent-gold cursor-pointer" checked={formData.is_signature} onChange={e => setFormData({...formData, is_signature: e.target.checked})} />
                           <label htmlFor="isSignature" className="text-[9px] md:text-[10px] uppercase tracking-widest text-gold font-bold cursor-pointer italic">Signature</label>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <input type="checkbox" id="status" className="w-4 h-4 md:w-5 md:h-5 accent-green-600 cursor-pointer" checked={formData.status === 'published'} onChange={e => setFormData({...formData, status: e.target.checked ? 'published' : 'draft'})} />
+                          <label htmlFor="status" className="text-[9px] md:text-[10px] uppercase tracking-widest text-charcoal font-bold cursor-pointer">Published</label>
                         </div>
                       </div>
                     </div>

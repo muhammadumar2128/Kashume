@@ -27,7 +27,7 @@ const Shop = () => {
         console.log("Shop: Requesting products from database...");
         
         const { data, error } = await Promise.race([
-          supabase.from('products').select('*').order('created_at', { ascending: false }),
+          supabase.from('products').select('*').eq('status', 'published').order('created_at', { ascending: false }),
           new Promise((_, reject) => setTimeout(() => reject(new Error('Product fetch timeout')), 5000))
         ]);
 

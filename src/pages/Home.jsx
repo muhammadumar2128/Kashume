@@ -23,6 +23,7 @@ const Home = () => {
           .from('products')
           .select('*')
           .eq('is_signature', true)
+          .eq('status', 'published')
           .limit(3);
         
         setSignatureProducts(signatureData || []);
@@ -32,6 +33,7 @@ const Home = () => {
           .from('products')
           .select('*')
           .eq('is_bundle', true)
+          .eq('status', 'published')
           .limit(2);
 
         if (bundlesData) {
