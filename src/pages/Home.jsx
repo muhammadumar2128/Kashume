@@ -115,14 +115,6 @@ const Home = () => {
                   <div className="relative group">
                     <ProductCard product={product} index={idx} />
                     
-                    {/* Artistic Label */}
-                    <div className="absolute -bottom-6 -right-4 md:-right-8 bg-charcoal text-ivory p-6 md:p-8 shadow-2xl z-20 pointer-events-none ring-1 ring-gold/20">
-                      <div className="space-y-1">
-                        <span className="text-[7px] uppercase tracking-[0.4em] text-gold block font-black">Archive No.</span>
-                        <span className="text-lg font-serif italic block">00{idx + 1} / SE</span>
-                      </div>
-                    </div>
-                    
                     {/* Floating Motif */}
                     <div className="absolute -top-6 -left-6 w-12 h-12 border border-gold/10 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-1000">
                        <Award className="text-gold/20" size={20} strokeWidth={1} />
