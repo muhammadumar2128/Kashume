@@ -3,37 +3,38 @@ import SplitScrollHero from '../components/ui/SplitScrollHero';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Star, Check } from 'lucide-react';
+import { ShoppingBag, Star, Check, Award, Zap, ShieldCheck } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import ProductCard from '../components/shop/ProductCard';
 import SEO from '../components/ui/SEO';
 
 const Home = () => {
-  const [products, setProducts] = useState([]);
+  const [signatureProducts, setSignatureProducts] = useState([]);
   const [bundles, setBundles] = useState([]);
-  const [loadingBundles, setLoadingBundles] = useState(true);
+  const [loading, setLoading] = useState(true);
   const { dispatch } = useCart();
 
   useEffect(() => {
-    const fetchBundles = async () => {
-      // Safely check if Supabase is configured
-      const url = import.meta.env.VITE_SUPABASE_URL;
-      if (!url || url.includes('placeholder')) {
-        setBundles([]);
-        setLoadingBundles(false);
-        return;
-      }
-
+    const fetchHomeData = async () => {
       try {
-        const { data, error } = await supabase
+        // Fetch Signature Products
+        const { data: signatureData } = await supabase
+          .from('products')
+          .select('*')
+          .eq('is_signature', true)
+          .limit(3);
+        
+        setSignatureProducts(signatureData || []);
+
+        // Fetch Bundles
+        const { data: bundlesData } = await supabase
           .from('products')
           .select('*')
           .eq('is_bundle', true)
           .limit(2);
 
-        if (error || !data) {
-          setBundles([]);
-        } else {
-          const dynamicBundles = data.map(p => ({
+        if (bundlesData) {
+          const dynamicBundles = bundlesData.map(p => ({
             id: p.id,
             name: p.name,
             price: p.price,
@@ -46,13 +47,13 @@ const Home = () => {
           setBundles(dynamicBundles);
         }
       } catch (err) {
-        setBundles([]);
+        console.error('Home fetch error:', err);
       } finally {
-        setLoadingBundles(false);
+        setLoading(false);
       }
     };
 
-    fetchBundles();
+    fetchHomeData();
   }, []);
 
   const addToCart = (bundle) => {
@@ -63,6 +64,45 @@ const Home = () => {
     <main className="relative bg-[#FAF9F6]">
       <Navbar />
       <SplitScrollHero />
+
+      {/* Signature Section */}
+      {signatureProducts.length > 0 && (
+        <section className="py-24 md:py-40 bg-charcoal text-ivory relative">
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-gold/5 pointer-events-none" />
+          <div className="container mx-auto px-6 max-w-7xl">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-20 gap-8">
+              <motion.div 
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="text-center md:text-left"
+              >
+                <span className="text-[10px] uppercase tracking-[0.6em] text-gold mb-6 block font-black">The Masterpiece</span>
+                <h2 className="text-4xl md:text-6xl font-serif italic tracking-tighter uppercase leading-tight font-bold">Signature <br className="hidden md:block" />Collection</h2>
+              </motion.div>
+              <motion.p 
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="text-ivory/60 max-w-md text-sm md:text-base font-light leading-relaxed text-center md:text-right italic font-medium"
+              >
+                The pinnacle of our olfactory research. Each signature essence is a singular narrative, distilled from the rarest botanical extracts in our archives.
+              </motion.p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-20">
+              {signatureProducts.map((product, idx) => (
+                <div key={product.id} className="relative group">
+                  <ProductCard product={product} index={idx} />
+                  <div className="absolute -top-4 -left-4 z-20">
+                    <Award className="text-gold" size={32} strokeWidth={1} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
       
       {/* Bundles Section - Home Page Exclusive */}
       <section className="py-24 bg-[#F5F2ED]/30">
