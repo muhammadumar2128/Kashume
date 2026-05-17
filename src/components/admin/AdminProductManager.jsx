@@ -308,29 +308,40 @@ const AdminDashboard = () => {
     const files = Array.from(inputElement.files);
     if (files.length === 0) return;
 
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+    if (!cloudName || !uploadPreset) {
+      showNotification("Cloudinary configuration missing. Check environment variables.", "error");
+      return;
+    }
+
     setUploadingImage(true);
     const newImages = [...(formData.images || [])];
 
     try {
       const uploadPromises = files.map(async (file) => {
-        // Explicit check for allowed formats to provide better feedback
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
-        if (!allowedTypes.includes(file.type)) {
-          console.warn(`File type ${file.type} might not be supported. Attempting upload anyway.`);
+        const formDataUpload = new FormData();
+        formDataUpload.append('file', file);
+        formDataUpload.append('upload_preset', uploadPreset);
+        formDataUpload.append('folder', 'kashume_essences');
+
+        const response = await fetch(
+          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+          {
+            method: 'POST',
+            body: formDataUpload,
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error?.message || "Cloudinary upload failed");
         }
 
-        const fileName = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
-        const { error: uploadError } = await supabase.storage
-          .from('product-images')
-          .upload(`essences/${fileName}`, file);
-
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('product-images')
-          .getPublicUrl(`essences/${fileName}`);
-
-        return publicUrl;
+        const data = await response.json();
+        // Return the secure URL from Cloudinary
+        return data.secure_url;
       });
 
       const results = await Promise.allSettled(uploadPromises);
@@ -341,21 +352,21 @@ const AdminDashboard = () => {
           newImages.push(result.value);
           successCount++;
         } else {
-          console.error("Upload failed for a file:", result.reason);
+          console.error("Cloudinary upload failed for a file:", result.reason);
           showNotification(`A file failed to upload: ${result.reason?.message || 'Unknown error'}`, 'error');
         }
       }
 
       setFormData(prev => ({ ...prev, images: newImages }));
       if (successCount > 0) {
-        showNotification(`${successCount} Visual(s) captured successfully`);
+        showNotification(`${successCount} Visual(s) optimized & saved via Cloudinary`);
       }
     } catch (error) {
-      console.error("Global upload error:", error);
-      showNotification(error.message || "Failed to upload images", 'error');
+      console.error("Cloudinary global upload error:", error);
+      showNotification(error.message || "Failed to upload images to Cloudinary", 'error');
     } finally {
       setUploadingImage(false);
-      if (inputElement) inputElement.value = null; // Reset input safely
+      if (inputElement) inputElement.value = null;
     }
   };
 
