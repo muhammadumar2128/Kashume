@@ -76,6 +76,7 @@ const AdminDashboard = () => {
     gender: 'Unisex',
     is_new_arrival: false,
     is_bundle: false,
+    is_signature: false,
     original_price: '',
     scent_notes: { top: [], heart: [], base: [] },
     performance: { longevity: 'Long Lasting', sillage: 'Strong' },
@@ -216,6 +217,7 @@ const AdminDashboard = () => {
         gender: formData.gender,
         is_new_arrival: formData.is_new_arrival,
         is_bundle: formData.is_bundle,
+        is_signature: formData.is_signature,
         original_price: formData.original_price ? parseFloat(formData.original_price) : null,
         scent_notes: formData.scent_notes,
         performance: formData.performance,
@@ -884,6 +886,10 @@ const AdminDashboard = () => {
                         <div className="flex items-center gap-3">
                           <input type="checkbox" id="isBundle" className="w-4 h-4 md:w-5 md:h-5 accent-gold cursor-pointer" checked={formData.is_bundle} onChange={e => setFormData({...formData, is_bundle: e.target.checked})} />
                           <label htmlFor="isBundle" className="text-[9px] md:text-[10px] uppercase tracking-widest text-charcoal font-bold cursor-pointer">Bundle</label>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <input type="checkbox" id="isSignature" className="w-4 h-4 md:w-5 md:h-5 accent-gold cursor-pointer" checked={formData.is_signature} onChange={e => setFormData({...formData, is_signature: e.target.checked})} />
+                          <label htmlFor="isSignature" className="text-[9px] md:text-[10px] uppercase tracking-widest text-gold font-bold cursor-pointer italic">Signature</label>
                         </div>
                       </div>
                     </div>
