@@ -41,8 +41,13 @@ const Shop = () => {
           setFilteredProducts([]);
         } else {
           console.log(`Shop: Loaded ${data.length} products successfully.`);
-          setProducts(data);
-          setFilteredProducts(data);
+          const sortedData = [...data].sort((a, b) => {
+            if (a.is_bundle && !b.is_bundle) return 1;
+            if (!a.is_bundle && b.is_bundle) return -1;
+            return 0;
+          });
+          setProducts(sortedData);
+          setFilteredProducts(sortedData);
         }
       } catch (err) {
         console.error('Shop fetch exception or timeout:', err.message);
