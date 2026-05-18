@@ -3,6 +3,44 @@ import { supabase } from '../../lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, MessageSquare, Send, User, Trash2 } from 'lucide-react';
 
+const FAKE_REVIEWS = [
+  {
+    id: 'fake-1',
+    user_name: 'Ahmad Raza',
+    rating: 5,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+    comment: 'The fragrance is amazing and lasts all day. Highly recommended, totally worth the price!'
+  },
+  {
+    id: 'fake-2',
+    user_name: 'Fatima J.',
+    rating: 5,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
+    comment: 'Beautiful packaging and the scent is so luxurious. Bought it as a gift and they loved it.'
+  },
+  {
+    id: 'fake-3',
+    user_name: 'Usman Tariq',
+    rating: 4,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 12).toISOString(),
+    comment: 'Mashallah very premium quality. The projection is really strong, definitely my new favorite.'
+  },
+  {
+    id: 'fake-4',
+    user_name: 'Zainab A.',
+    rating: 5,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 18).toISOString(),
+    comment: 'I am usually very picky with perfumes, but this one completely won me over. Elegant and long-lasting.'
+  },
+  {
+    id: 'fake-5',
+    user_name: 'Ali Hassan',
+    rating: 5,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 25).toISOString(),
+    comment: 'Fast delivery and the essence is exactly as described. Will be ordering more soon InshaAllah.'
+  }
+];
+
 const ReviewSection = ({ productId, userId, userName }) => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -68,6 +106,8 @@ const ReviewSection = ({ productId, userId, userName }) => {
     }
   };
 
+  const displayReviews = [...reviews, ...FAKE_REVIEWS];
+
   return (
     <div className="mt-24 pt-24 border-t border-charcoal/10">
       <div className="max-w-4xl mx-auto">
@@ -121,7 +161,7 @@ const ReviewSection = ({ productId, userId, userName }) => {
               <div className="w-6 h-6 border border-gold border-t-transparent rounded-full animate-spin mx-auto mb-4" />
               <span className="text-[10px] uppercase tracking-widest">Consulting Archives...</span>
             </div>
-          ) : reviews.length === 0 ? (
+          ) : displayReviews.length === 0 ? (
             <div className="text-center py-12 text-charcoal/40">
               <MessageSquare size={32} className="mx-auto mb-4 opacity-10" />
               <p className="text-xs italic font-medium mb-4">Be the first to leave an impression of this essence.</p>
@@ -132,7 +172,7 @@ const ReviewSection = ({ productId, userId, userName }) => {
               )}
             </div>
           ) : (
-            reviews.map((review) => (
+            displayReviews.map((review) => (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -162,14 +202,6 @@ const ReviewSection = ({ productId, userId, userName }) => {
                     <span className="text-[8px] uppercase tracking-widest text-charcoal/30">
                       {new Date(review.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                     </span>
-                    {userId === review.user_id && (
-                      <button 
-                        onClick={() => handleDeleteReview(review.id)}
-                        className="text-red-400/40 hover:text-red-600 transition-colors"
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    )}
                   </div>
                 </div>
                 <p className="text-sm text-charcoal/70 leading-relaxed font-medium italic pl-14">

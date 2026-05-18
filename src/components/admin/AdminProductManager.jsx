@@ -7,9 +7,52 @@ import {
   Search, Filter, ArrowLeft, Loader2, CheckCircle2, AlertCircle,
   Package, ShoppingBag, Clock, CheckCircle, Truck, Upload,
   Tag, Settings, LogOut, Key, Hash, LayoutGrid, Database,
-  Eye, Droplets, Thermometer, HelpCircle, Wifi, WifiOff, Menu, User
+  Eye, Droplets, Thermometer, HelpCircle, Wifi, WifiOff, Menu, User, Star, MessageSquare
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const FAKE_REVIEWS = [
+  {
+    id: 'fake-1',
+    user_name: 'Ahmad Raza',
+    rating: 5,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+    comment: 'The fragrance is amazing and lasts all day. Highly recommended, totally worth the price!',
+    products: { name: 'All Products (System Default)' }
+  },
+  {
+    id: 'fake-2',
+    user_name: 'Fatima J.',
+    rating: 5,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
+    comment: 'Beautiful packaging and the scent is so luxurious. Bought it as a gift and they loved it.',
+    products: { name: 'All Products (System Default)' }
+  },
+  {
+    id: 'fake-3',
+    user_name: 'Usman Tariq',
+    rating: 4,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 12).toISOString(),
+    comment: 'Mashallah very premium quality. The projection is really strong, definitely my new favorite.',
+    products: { name: 'All Products (System Default)' }
+  },
+  {
+    id: 'fake-4',
+    user_name: 'Zainab A.',
+    rating: 5,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 18).toISOString(),
+    comment: 'I am usually very picky with perfumes, but this one completely won me over. Elegant and long-lasting.',
+    products: { name: 'All Products (System Default)' }
+  },
+  {
+    id: 'fake-5',
+    user_name: 'Ali Hassan',
+    rating: 5,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 25).toISOString(),
+    comment: 'Fast delivery and the essence is exactly as described. Will be ordering more soon InshaAllah.',
+    products: { name: 'All Products (System Default)' }
+  }
+];
 
 const AdminDashboard = () => {
   const { logout } = useAuth();
@@ -54,6 +97,7 @@ const AdminDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [promos, setPromos] = useState([]);
   const [faqs, setFaqs] = useState([]);
+  const [reviews, setReviews] = useState([]);
   
   // Pending orders count
   const pendingCount = orders.filter(o => o.status === 'pending').length;
@@ -139,6 +183,10 @@ const AdminDashboard = () => {
         const { data, error } = await supabase.from('faqs').select('*').order('display_order');
         if (error) throw error;
         setFaqs(data || []);
+      } else if (activeTab === 'reviews') {
+        const { data, error } = await supabase.from('reviews').select('*, products(name)').order('created_at', { ascending: false });
+        if (error) throw error;
+        setReviews([...(data || []), ...FAKE_REVIEWS]);
       }
     } catch (err) {
       console.error("Dashboard Fetch Error:", err);
@@ -508,6 +556,7 @@ const AdminDashboard = () => {
             { id: 'orders', label: 'Order Ledger', icon: ShoppingBag, count: pendingCount },
             { id: 'promos', label: 'Scent Tokens', icon: Tag },
             { id: 'faqs', label: 'Archives (FAQ)', icon: HelpCircle },
+            { id: 'reviews', label: 'Social Proof', icon: MessageSquare },
             { id: 'settings', label: 'Sanctum', icon: Settings },
           ].map(tab => (
             <button
@@ -578,6 +627,7 @@ const AdminDashboard = () => {
                   { id: 'orders', label: 'Order Ledger', icon: ShoppingBag, count: pendingCount },
                   { id: 'promos', label: 'Scent Tokens', icon: Tag },
                   { id: 'faqs', label: 'Archives (FAQ)', icon: HelpCircle },
+                  { id: 'reviews', label: 'Social Proof', icon: MessageSquare },
                   { id: 'settings', label: 'Sanctum', icon: Settings },
                 ].map(tab => (
                   <button
@@ -855,6 +905,43 @@ const AdminDashboard = () => {
                             <button onClick={() => openModal(f)} className="p-1.5 md:p-2 text-charcoal/40 hover:text-gold transition-colors"><Edit size={16} className="w-4 h-4" /></button>
                             <button onClick={() => handleDelete(f.id, 'faqs')} className="p-1.5 md:p-2 text-charcoal/40 hover:text-red-500 transition-colors"><Trash2 size={16} className="w-4 h-4" /></button>
                           </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+
+              {/* Reviews View */}
+              {activeTab === 'reviews' && (
+                <table className="w-full text-left min-w-[600px] md:min-w-0">
+                  <thead className="bg-[#F5F2ED] border-b border-charcoal/10 text-[8px] md:text-[9px] uppercase tracking-[0.2em] md:tracking-[0.3em] text-charcoal font-bold">
+                    <tr>
+                      <th className="p-4 md:p-6">Client</th>
+                      <th className="p-4 md:p-6">Essence</th>
+                      <th className="p-4 md:p-6">Impression</th>
+                      <th className="p-4 md:p-6 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-charcoal/5 text-xs md:text-sm font-light">
+                    {reviews.map(r => (
+                      <tr key={r.id} className="hover:bg-[#F5F2ED]/50 transition-all duration-300 text-charcoal">
+                        <td className="p-4 md:p-6 font-medium">
+                          <div className="font-bold text-sm">{r.user_name}</div>
+                          <div className="flex gap-0.5 mt-1 text-gold">
+                            {[...Array(5)].map((_, i) => (
+                              <Star key={i} size={10} fill={i < r.rating ? "currentColor" : "none"} className={i < r.rating ? "text-gold" : "text-charcoal/10"} />
+                            ))}
+                          </div>
+                        </td>
+                        <td className="p-4 md:p-6 font-serif italic text-base md:text-lg">{r.products?.name}</td>
+                        <td className="p-4 md:p-6 max-w-[200px]">
+                          <div className="text-[10px] md:text-xs leading-relaxed italic truncate">"{r.comment}"</div>
+                        </td>
+                        <td className="p-4 md:p-6 text-right">
+                          {!r.id.toString().startsWith('fake-') && (
+                            <button onClick={() => handleDelete(r.id, 'reviews')} className="p-1.5 md:p-2 text-charcoal/40 hover:text-red-500 transition-colors"><Trash2 size={16} className="w-4 h-4" /></button>
+                          )}
                         </td>
                       </tr>
                     ))}
