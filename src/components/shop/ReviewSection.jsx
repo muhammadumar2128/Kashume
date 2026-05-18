@@ -1,44 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, MessageSquare, Send, User, Trash2 } from 'lucide-react';
 
-const FAKE_REVIEWS = [
-  {
-    id: 'fake-1',
-    user_name: 'Ahmad Raza',
-    rating: 5,
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
-    comment: 'The fragrance is amazing and lasts all day. Highly recommended, totally worth the price!'
-  },
-  {
-    id: 'fake-2',
-    user_name: 'Fatima J.',
-    rating: 5,
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
-    comment: 'Beautiful packaging and the scent is so luxurious. Bought it as a gift and they loved it.'
-  },
-  {
-    id: 'fake-3',
-    user_name: 'Usman Tariq',
-    rating: 4,
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 12).toISOString(),
-    comment: 'Mashallah very premium quality. The projection is really strong, definitely my new favorite.'
-  },
-  {
-    id: 'fake-4',
-    user_name: 'Zainab A.',
-    rating: 5,
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 18).toISOString(),
-    comment: 'I am usually very picky with perfumes, but this one completely won me over. Elegant and long-lasting.'
-  },
-  {
-    id: 'fake-5',
-    user_name: 'Ali Hassan',
-    rating: 5,
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 25).toISOString(),
-    comment: 'Fast delivery and the essence is exactly as described. Will be ordering more soon InshaAllah.'
-  }
+const FAKE_REVIEWS_POOL = [
+  { user_name: 'Ahmad Raza', rating: 5, comment: 'The fragrance is amazing and lasts all day. Highly recommended, totally worth the price!' },
+  { user_name: 'Fatima J.', rating: 5, comment: 'Beautiful packaging and the scent is so luxurious. Bought it as a gift and they loved it.' },
+  { user_name: 'Usman Tariq', rating: 4, comment: 'Mashallah very premium quality. The projection is really strong, definitely my new favorite.' },
+  { user_name: 'Zainab A.', rating: 5, comment: 'I am usually very picky with perfumes, but this one completely won me over. Elegant and long-lasting.' },
+  { user_name: 'Ali Hassan', rating: 5, comment: 'Fast delivery and the essence is exactly as described. Will be ordering more soon InshaAllah.' },
+  { user_name: 'Sara K.', rating: 4, comment: 'A very unique blend. It changes beautifully throughout the day.' },
+  { user_name: 'Bilal M.', rating: 5, comment: '10/10. The sillage is incredible. I got so many compliments wearing this.' },
+  { user_name: 'Nida W.', rating: 5, comment: 'Absolutely mesmerizing. The bottle looks stunning on my vanity too.' },
+  { user_name: 'Omar Farooq', rating: 4, comment: 'Good quality ingredients. You can tell it is purely artisanal and crafted with care.' },
+  { user_name: 'Aisha S.', rating: 5, comment: 'My signature scent now! The dry down is powdery and sweet, exactly what I wanted.' },
+  { user_name: 'Hassan K.', rating: 5, comment: 'Exceeded my expectations. The notes are perfectly balanced.' },
+  { user_name: 'Maha Y.', rating: 4, comment: 'Smells incredibly expensive. Love the aesthetic of the bottle too.' },
+  { user_name: 'Daniyal T.', rating: 5, comment: 'Performance is beast mode. 2 sprays are enough for the whole day.' },
+  { user_name: 'Imran F.', rating: 5, comment: 'I blind bought this based on the notes, and it did not disappoint.' },
+  { user_name: 'Hira N.', rating: 4, comment: 'Very captivating scent profile. Highly addictive.' }
 ];
 
 const ReviewSection = ({ productId, userId, userName }) => {
@@ -46,6 +26,51 @@ const ReviewSection = ({ productId, userId, userName }) => {
   const [loading, setLoading] = useState(true);
   const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
   const [submitting, setSubmitting] = useState(false);
+
+  // Generate a consistent, pseudo-random subset of fake reviews for this specific product ID
+  const productFakeReviews = useMemo(() => {
+    if (!productId) return [];
+    
+    // Simple string hash
+    const idStr = String(productId);
+    let hash = 0;
+    for (let i = 0; i < idStr.length; i++) {
+      hash = idStr.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const absHash = Math.abs(hash);
+    
+    // Simple PRNG based on the hash
+    let seed = absHash === 0 ? 1 : absHash;
+    const random = () => {
+      const x = Math.sin(seed++) * 10000;
+      return x - Math.floor(x);
+    };
+
+    // Pick 2 to 4 reviews
+    const count = Math.floor(random() * 3) + 2; 
+    
+    // Shuffle a copy of the pool
+    const pool = [...FAKE_REVIEWS_POOL];
+    for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    
+    const selected = [];
+    for(let i = 0; i < count; i++) {
+      const daysAgo = Math.floor(random() * 20) + (i * 7) + 1; // Fake dates based on seed
+      selected.push({
+        id: `fake-${productId}-${i}`,
+        user_name: pool[i].user_name,
+        rating: pool[i].rating,
+        comment: pool[i].comment,
+        created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * daysAgo).toISOString()
+      });
+    }
+    
+    // Sort fake reviews to simulate chronological order (newest first)
+    return selected.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  }, [productId]);
 
   useEffect(() => {
     fetchReviews();
@@ -106,7 +131,7 @@ const ReviewSection = ({ productId, userId, userName }) => {
     }
   };
 
-  const displayReviews = [...reviews, ...FAKE_REVIEWS];
+  const displayReviews = [...reviews, ...productFakeReviews];
 
   return (
     <div className="mt-24 pt-24 border-t border-charcoal/10">
