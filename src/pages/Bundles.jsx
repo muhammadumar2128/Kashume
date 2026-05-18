@@ -45,11 +45,10 @@ const Bundles = () => {
             price: p.price,
             originalPrice: p.original_price || p.price + 500, // Use DB value or fallback to hack
             description: p.description,
-            image: p.images?.[0] || "/images/DATA 1.O/Bundles/1.png",
+            image: p.images?.[0] || p.image,
             items: p.scent_notes?.top || ["Limited Edition Ensemble"],
             benefit: p.shipping || "Complimentary Shipping"
-          }));
-          setBundles(dynamicBundles);
+          }));          setBundles(dynamicBundles);
         }
       } catch (err) {
         console.error('Bundles unexpected error:', err);
@@ -104,14 +103,13 @@ const Bundles = () => {
                 className="bg-white p-8 md:p-12 shadow-sm ring-1 ring-charcoal/5 flex flex-col md:flex-row gap-10 items-center rounded-3xl overflow-hidden"
               >
                 <Link to={`/bundle/${bundle.id}`} className="w-full md:w-1/2 block group/img">
-                  <div className="aspect-[4/5] overflow-hidden bg-[#F5F2ED] flex items-center justify-center p-4 rounded-2xl relative">
+                  <div className="relative aspect-[4/5] w-full max-w-[280px] mx-auto rounded-xl md:rounded-2xl overflow-hidden bg-white transition-all duration-700 group-hover/img:shadow-2xl group-hover/img:shadow-charcoal/10 ring-1 ring-charcoal/15">
                     <LazyImage 
                       src={bundle.image} 
                       alt={bundle.name} 
                       containerClassName="w-full h-full"
-                      className="w-full h-full object-contain group-hover/img:scale-105 transition-transform duration-[2s]"
+                      className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover/img:scale-110"
                     />
-                    <div className="absolute inset-0 bg-charcoal/0 group-hover/img:bg-charcoal/5 transition-colors duration-700" />
                   </div>
                 </Link>
                 

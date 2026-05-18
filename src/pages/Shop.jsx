@@ -41,9 +41,8 @@ const Shop = () => {
           setFilteredProducts([]);
         } else {
           console.log(`Shop: Loaded ${data.length} products successfully.`);
-          const nonBundles = data.filter(p => p.is_bundle !== true);
-          setProducts(nonBundles);
-          setFilteredProducts(nonBundles);
+          setProducts(data);
+          setFilteredProducts(data);
         }
       } catch (err) {
         console.error('Shop fetch exception or timeout:', err.message);

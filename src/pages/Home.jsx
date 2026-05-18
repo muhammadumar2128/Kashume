@@ -172,7 +172,7 @@ const Home = () => {
               >
                 {/* Image Side - Compact & Framed */}
                 <Link to={`/bundle/${bundle.id}`} className="w-[85%] md:w-[45%] block group/img">
-                  <div className="aspect-[3/4] overflow-hidden bg-white shadow-sm ring-1 ring-charcoal/20 relative flex items-center justify-center">
+                  <div className="aspect-[3/4] overflow-hidden rounded-xl md:rounded-2xl bg-white shadow-sm ring-1 ring-charcoal/20 relative flex items-center justify-center [transform:translateZ(0)]">
                     <motion.img 
                       initial={{ opacity: 0, scale: 1.15, filter: "blur(10px)" }}
                       whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
@@ -184,7 +184,7 @@ const Home = () => {
                       }}
                       src={bundle.image} 
                       alt={bundle.name} 
-                      className="w-full h-full object-cover grayscale-[10%] group-hover/img:grayscale-0 group-hover/img:scale-105 transition-all duration-[3s] ease-out"
+                      className="w-full h-full object-cover rounded-xl md:rounded-2xl grayscale-[10%] group-hover/img:grayscale-0 group-hover/img:scale-105 transition-all duration-[3s] ease-out"
                     />
                     
                     {/* Soft Ambient Shadow */}

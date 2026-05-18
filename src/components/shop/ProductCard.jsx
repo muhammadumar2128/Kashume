@@ -60,7 +60,7 @@ const ProductCard = ({ product, index, isNew = false }) => {
       transition={{ duration: 0.8, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
       className="group"
     >
-      <Link to={`/product/${product.id}`} className="block">
+      <Link to={product.is_bundle ? `/bundle/${product.id}` : `/product/${product.id}`} className="block">
         <div className="relative aspect-[4/5] w-full max-w-[280px] mx-auto rounded-xl md:rounded-2xl overflow-hidden mb-3 md:mb-8 bg-white transition-all duration-700 group-hover:shadow-2xl group-hover:shadow-charcoal/10 ring-1 ring-charcoal/15">
           <AnimatePresence initial={false}>
             <motion.div
