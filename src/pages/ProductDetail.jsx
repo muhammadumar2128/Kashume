@@ -54,6 +54,16 @@ const ProductDetail = () => {
           setProduct(null);
         } else {
           setProduct(data);
+          // Track ViewContent Pixel Event
+          if (window.fbq) {
+            window.fbq('track', 'ViewContent', {
+              content_name: data.name,
+              content_ids: [data.id],
+              content_type: 'product',
+              value: data.price,
+              currency: 'PKR'
+            });
+          }
         }
       } catch (err) {
         console.error('ProductDetail unexpected error:', err);
@@ -87,14 +97,26 @@ const ProductDetail = () => {
   };
 
   const addToCart = () => {
+    const priceToUse = selectedSize ? selectedSize.price : product.price;
     dispatch({ 
       type: 'ADD_ITEM', 
       payload: {
         ...product,
-        price: selectedSize ? selectedSize.price : product.price,
+        price: priceToUse,
         selectedSize: selectedSize ? selectedSize.volume : null
       } 
     });
+
+    // Track AddToCart Pixel Event
+    if (window.fbq) {
+      window.fbq('track', 'AddToCart', {
+        content_name: product.name,
+        content_ids: [product.id],
+        content_type: 'product',
+        value: priceToUse,
+        currency: 'PKR'
+      });
+    }
   };
 
   if (loading) return <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center"><div className="w-8 h-8 border border-gold border-t-transparent rounded-full animate-spin" /></div>;

@@ -51,6 +51,17 @@ const ProductCard = ({ product, index, isNew = false }) => {
     }
 
     dispatch({ type: 'ADD_ITEM', payload: cartItem });
+
+    // Track AddToCart Pixel Event
+    if (window.fbq) {
+      window.fbq('track', 'AddToCart', {
+        content_name: cartItem.name,
+        content_ids: [cartItem.id],
+        content_type: 'product',
+        value: cartItem.price,
+        currency: 'PKR'
+      });
+    }
   };
   return (
     <motion.div 

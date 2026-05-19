@@ -30,6 +30,17 @@ const BundleDetail = () => {
 
         if (error) throw error;
         setBundle(data);
+        
+        // Track ViewContent Pixel Event for Bundle
+        if (window.fbq && data) {
+          window.fbq('track', 'ViewContent', {
+            content_name: data.name,
+            content_ids: [data.id],
+            content_type: 'product_group',
+            value: data.price,
+            currency: 'PKR'
+          });
+        }
       } catch (err) {
         console.error('Bundle fetch error:', err);
       } finally {
@@ -50,6 +61,17 @@ const BundleDetail = () => {
 
   const addToCart = () => {
     dispatch({ type: 'ADD_ITEM', payload: bundle });
+    
+    // Track AddToCart Pixel Event
+    if (window.fbq && bundle) {
+      window.fbq('track', 'AddToCart', {
+        content_name: bundle.name,
+        content_ids: [bundle.id],
+        content_type: 'product_group',
+        value: bundle.price,
+        currency: 'PKR'
+      });
+    }
   };
 
   if (loading) return <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center"><div className="w-8 h-8 border border-gold border-t-transparent rounded-full animate-spin" /></div>;

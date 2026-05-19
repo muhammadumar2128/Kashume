@@ -144,6 +144,15 @@ const Checkout = () => {
 
       if (supabaseError) throw supabaseError;
 
+      // Track Purchase Pixel Event
+      if (window.fbq) {
+        window.fbq('track', 'Purchase', {
+          value: finalTotal,
+          currency: 'PKR',
+          num_items: state.items.length
+        });
+      }
+
       // Send Order Confirmation Emails via Vercel Serverless Function
       try {
         await fetch('/api/send-email', {

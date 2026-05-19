@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import ScrollToTop from './components/layout/ScrollToTop';
@@ -26,6 +26,19 @@ import Footer from './components/layout/Footer';
 import Preloader from './components/ui/Preloader';
 import WhatsAppFloat from './components/ui/WhatsAppFloat';
 
+// Global Facebook Pixel Route Tracker
+function PixelTracker() {
+  const location = useLocation();
+  
+  useEffect(() => {
+    if (window.fbq) {
+      window.fbq('track', 'PageView');
+    }
+  }, [location]);
+
+  return null;
+}
+
 function App() {
   const [loading, setLoading] = useState(() => {
     // If we've already shown the preloader in this session, skip it for a faster refresh
@@ -52,6 +65,7 @@ function App() {
       </AnimatePresence>
       
       <Router>
+        <PixelTracker />
         <ScrollToTop />
         <div className="flex flex-col min-h-screen">
           <div className="flex-grow">

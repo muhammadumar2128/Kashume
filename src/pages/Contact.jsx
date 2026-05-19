@@ -84,6 +84,11 @@ const Contact = () => {
                     href="https://wa.me/message/ZXZ3RMSGOHPOH1" 
                     target="_blank" 
                     rel="noopener noreferrer"
+                    onClick={() => {
+                      if (window.fbq) {
+                        window.fbq('track', 'Contact');
+                      }
+                    }}
                     className="inline-flex items-center gap-3 bg-gold text-charcoal px-8 py-4 text-[10px] uppercase tracking-[0.4em] font-bold hover:bg-ivory transition-all duration-500 rounded-sm"
                   >
                     <MessageCircle size={16} /> WhatsApp Chat

@@ -27,6 +27,14 @@ const Register = () => {
     setLoading(true);
     try {
       await register(email, password, fullName, phone);
+      
+      // Track CompleteRegistration Pixel Event
+      if (window.fbq) {
+        window.fbq('track', 'CompleteRegistration', {
+          content_name: 'User Registration'
+        });
+      }
+
       navigate('/account');
     } catch (err) {
       setError(err.message || 'Failed to create account. Please try again.');
