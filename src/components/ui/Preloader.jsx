@@ -37,6 +37,11 @@ const Preloader = () => {
     }
   };
 
+  const centerContainerVariants = {
+    initial: { opacity: 1 },
+    exit: { opacity: 0, transition: { duration: 0.4, ease: "easeIn" } }
+  };
+
   return (
     <div className="fixed inset-0 z-[100] flex overflow-hidden pointer-events-none">
       {/* 4 Vertical Panels */}
@@ -53,7 +58,13 @@ const Preloader = () => {
       ))}
 
       {/* Center Branding */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none overflow-hidden">
+      <motion.div 
+        variants={centerContainerVariants}
+        initial="initial"
+        animate={startPanels ? "exit" : "initial"}
+        exit="exit"
+        className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none overflow-hidden"
+      >
         <div className="flex overflow-hidden pb-2">
           {brand.split("").map((letter, i) => (
             <motion.span
@@ -85,7 +96,7 @@ const Preloader = () => {
         >
           Established 2024
         </motion.p>
-      </div>
+      </motion.div>
 
       {/* Grain Overlay */}
       <div 
