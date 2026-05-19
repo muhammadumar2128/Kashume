@@ -141,9 +141,16 @@ const ProductCard = ({ product, index, isNew = false }) => {
           <h3 className="text-sm md:text-xl font-serif italic text-charcoal tracking-tight group-hover:text-gold transition-colors duration-500 font-bold">
             {product.name}
           </h3>
-          <p className="font-sans text-[10px] md:text-[12px] font-bold text-charcoal/70 tracking-[0.1em]">
-            Rs. {product.price}
-          </p>
+          <div className="flex items-center justify-center gap-2">
+            <p className="font-sans text-[10px] md:text-[12px] font-bold text-charcoal/70 tracking-[0.1em]">
+              Rs. {product.price}
+            </p>
+            {product.original_price && product.original_price > product.price && (
+              <p className="font-sans text-[8px] md:text-[10px] font-bold text-charcoal/40 line-through tracking-[0.1em]">
+                Rs. {product.original_price}
+              </p>
+            )}
+          </div>
         </div>
       </Link>
       
