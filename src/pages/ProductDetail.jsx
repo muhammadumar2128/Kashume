@@ -245,7 +245,7 @@ const ProductDetail = () => {
               {/* Composition */}
               {(product.scent_notes?.top?.length > 0 || product.scent_notes?.heart?.length > 0 || product.scent_notes?.base?.length > 0) && (
                 <div className="mb-10 space-y-6">
-                  <h3 className="text-xs uppercase tracking-widest font-black border-b-2 border-charcoal/20 pb-2">Olfactory Pyramid</h3>
+                  <h3 className="text-xs uppercase tracking-widest font-black border-b-2 border-charcoal/20 pb-2">Perfume Notes</h3>
                   <div className="grid grid-cols-1 gap-4">
                     {product.scent_notes?.top?.length > 0 && (
                       <div>

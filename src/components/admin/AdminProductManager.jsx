@@ -1158,7 +1158,7 @@ const AdminDashboard = () => {
 
                         <div className="space-y-6">
                           <h4 className="text-[9px] md:text-[10px] uppercase tracking-[0.4em] font-bold text-gold border-b-2 border-gold/50 pb-2 flex items-center gap-2">
-                            <Droplets size={12} /> Olfactory Pyramid
+                            <Droplets size={12} /> Perfume Notes
                           </h4>
                           <div className="grid grid-cols-1 gap-4 md:gap-6">
                             {['top', 'heart', 'base'].map(type => (
