@@ -246,7 +246,7 @@ const Checkout = () => {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-          <div className="space-y-12">
+          <div className="space-y-12 order-2 lg:order-1">
             {/* Saved Addresses Section */}
             {user && savedAddresses.length > 0 && (
               <section className="space-y-6">
@@ -281,7 +281,7 @@ const Checkout = () => {
 
             <form onSubmit={handleSubmit} className="space-y-12">
               <section className="space-y-8">
-                <h3 className="text-xs uppercase tracking-[0.3em] font-black text-gold border-b-2 border-gold/30 pb-4">Digital Identity</h3>
+                <h3 className="text-xs uppercase tracking-[0.3em] font-black text-gold border-b-2 border-gold/30 pb-4">Email Address</h3>
                 <div className="space-y-6">
                   <input 
                     type="email" 
@@ -296,7 +296,7 @@ const Checkout = () => {
               </section>
 
               <section className="space-y-8">
-                <h3 className="text-xs uppercase tracking-[0.3em] font-black text-gold border-b-2 border-gold/30 pb-4">Shipping Protocol</h3>
+                <h3 className="text-xs uppercase tracking-[0.3em] font-black text-gold border-b-2 border-gold/30 pb-4">Shipping Address</h3>
                 <div className="space-y-6">
                   <input 
                     type="text" 
@@ -340,7 +340,7 @@ const Checkout = () => {
               </section>
 
               <section className="space-y-8">
-                <h3 className="text-xs uppercase tracking-[0.3em] font-black text-gold border-b-2 border-gold/30 pb-4">Exchange Protocol</h3>
+                <h3 className="text-xs uppercase tracking-[0.3em] font-black text-gold border-b-2 border-gold/30 pb-4">Payment Method</h3>
                 <div className="flex gap-6">
                   <label className={`flex-1 p-6 border-2 transition-all cursor-pointer rounded-2xl ${formData.paymentMethod === 'COD' ? 'border-gold bg-gold/10 shadow-lg shadow-gold/5' : 'border-charcoal/10 hover:border-charcoal/30'}`}>
                     <input 
@@ -379,7 +379,7 @@ const Checkout = () => {
             </form>
           </div>
 
-          <aside className="lg:sticky lg:top-32 h-fit bg-white p-12 rounded-3xl shadow-2xl shadow-charcoal/10 space-y-8 border-2 border-charcoal/5">
+          <aside className="order-1 lg:order-2 lg:sticky lg:top-32 h-fit bg-white p-12 rounded-3xl shadow-2xl shadow-charcoal/10 space-y-8 border-2 border-charcoal/5">
             <h3 className="text-xs uppercase tracking-[0.3em] font-black text-gold border-b-2 border-gold/30 pb-4">Your Selection</h3>
             
             <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
@@ -442,7 +442,7 @@ const Checkout = () => {
                 <span className="text-charcoal">Rs. {subtotal}</span>
               </div>
               <div className="flex justify-between text-xs font-bold">
-                <span className="text-charcoal/60 uppercase tracking-widest">Shipping Protocol</span>
+                <span className="text-charcoal/60 uppercase tracking-widest">Shipping Cost</span>
                 <span className="text-gold uppercase tracking-widest font-black">
                   {shipping === 0 ? 'Complimentary' : `Rs. ${shipping}`}
                 </span>

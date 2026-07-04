@@ -37,11 +37,11 @@ const SplitScrollHero = () => {
   }, []);
 
   return (
-    <section ref={containerRef} style={{ position: 'relative' }} className="relative h-[110vh] bg-[#FAF9F6] overflow-hidden">
-      <div className="sticky top-0 h-screen flex flex-col md:flex-row">
+    <section ref={containerRef} style={{ position: 'relative' }} className="relative h-auto md:h-[110vh] bg-[#FAF9F6] overflow-hidden">
+      <div className="relative md:sticky md:top-0 h-auto md:h-screen flex flex-col md:flex-row">
         
         {/* Editorial Content - Top on Mobile, Left on Desktop */}
-        <div className="w-full h-[45%] md:h-full md:w-1/2 flex flex-col justify-center px-8 md:px-24 z-20 bg-[#FAF9F6] order-2 md:order-1">
+        <div className="w-full h-[45vh] md:h-full md:w-1/2 flex flex-col justify-center px-8 md:px-24 z-20 bg-[#FAF9F6] order-2 md:order-1">
           <motion.div style={{ y: textY, opacity }}>
             <motion.span 
               initial={{ opacity: 0, letterSpacing: "0.2em" }}
@@ -96,7 +96,7 @@ const SplitScrollHero = () => {
         </div>
 
         {/* Animated Image Gallery - Bottom on Mobile, Right on Desktop */}
-        <div className="w-full h-[55%] md:h-full md:w-1/2 relative overflow-hidden bg-[#F5F2ED] order-1 md:order-2">
+        <div className="w-full h-[55vh] md:h-full md:w-1/2 relative overflow-hidden bg-[#F5F2ED] order-1 md:order-2">
           <AnimatePresence mode="wait">
             <motion.div 
               key={currentImageIndex}

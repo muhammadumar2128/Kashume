@@ -128,6 +128,7 @@ const AdminDashboard = () => {
     sizes: [],
     performance: { longevity: 'Long Lasting', sillage: 'Strong' },
     shipping: 'All Over Pakistan Product can take 3-4 days to deliver. Delivery charges are Rs.199. Free delivery for orders above 3000.',
+    shipping_cost: 199,
     images: []
   };
 
@@ -278,6 +279,7 @@ const AdminDashboard = () => {
         sizes: formData.sizes || [],
         performance: formData.performance,
         shipping: formData.shipping,
+        shipping_cost: parseFloat(formData.shipping_cost) || 0,
         images: formData.images
       };
     } else if (activeTab === 'categories') {
@@ -1120,7 +1122,38 @@ const AdminDashboard = () => {
                       <>
                         <div className="space-y-2">
                           <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Scent Narrative (Description)</label>
-                          <textarea className="w-full border-2 border-charcoal/40 p-3 md:p-4 text-[10px] md:text-xs font-bold leading-relaxed outline-none focus:border-gold h-32 resize-none italic bg-[#F5F2ED] rounded-xl" value={formData.description || ''} onChange={e => setFormData({...formData, description: e.target.value})} />
+                          <div className="flex items-center gap-2 mb-1">
+                            <button type="button" title="Bold" onClick={() => {
+                              const ta = document.getElementById('desc-editor');
+                              const start = ta.selectionStart;
+                              const end = ta.selectionEnd;
+                              const text = formData.description || '';
+                              const selected = text.substring(start, end);
+                              const newText = text.substring(0, start) + '**' + (selected || 'bold text') + '**' + text.substring(end);
+                              setFormData({...formData, description: newText});
+                              setTimeout(() => { ta.focus(); ta.selectionStart = start + 2; ta.selectionEnd = start + 2 + (selected || 'bold text').length; }, 0);
+                            }} className="px-2.5 py-1 text-[10px] font-black bg-charcoal text-white rounded hover:bg-gold transition-colors">B</button>
+                            <button type="button" title="Bullet Point" onClick={() => {
+                              const ta = document.getElementById('desc-editor');
+                              const start = ta.selectionStart;
+                              const text = formData.description || '';
+                              const before = text.substring(0, start);
+                              const needsNewline = before.length > 0 && !before.endsWith('\n') ? '\n' : '';
+                              const newText = before + needsNewline + '- ' + text.substring(start);
+                              setFormData({...formData, description: newText});
+                              setTimeout(() => { ta.focus(); ta.selectionStart = ta.selectionEnd = before.length + needsNewline.length + 2; }, 0);
+                            }} className="px-2.5 py-1 text-[10px] font-bold bg-charcoal text-white rounded hover:bg-gold transition-colors">• List</button>
+                            <button type="button" title="Line Break" onClick={() => {
+                              const ta = document.getElementById('desc-editor');
+                              const start = ta.selectionStart;
+                              const text = formData.description || '';
+                              const newText = text.substring(0, start) + '\n\n' + text.substring(start);
+                              setFormData({...formData, description: newText});
+                              setTimeout(() => { ta.focus(); ta.selectionStart = ta.selectionEnd = start + 2; }, 0);
+                            }} className="px-2.5 py-1 text-[10px] font-bold bg-charcoal/70 text-white rounded hover:bg-gold transition-colors">↵ Break</button>
+                            <span className="text-[7px] md:text-[8px] text-charcoal/40 italic ml-auto">Select text → Bold | Click → Bullet/Break</span>
+                          </div>
+                          <textarea id="desc-editor" className="w-full border-2 border-charcoal/40 p-3 md:p-4 text-[10px] md:text-xs font-bold leading-relaxed outline-none focus:border-gold h-32 resize-none bg-[#F5F2ED] rounded-xl" value={formData.description || ''} onChange={e => setFormData({...formData, description: e.target.value})} />
                         </div>
 
                         <div className="space-y-6">
@@ -1234,9 +1267,35 @@ const AdminDashboard = () => {
                       </div>
                     </div>
 
-                    {/* Shipping Intelligence */}
+                    {/* Shipping Cost */}
                     <div className="space-y-2">
-                      <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Shipping Manifesto</label>
+                      <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Shipping Cost (PKR)</label>
+                      <div className="flex items-center gap-4">
+                        <input 
+                          type="number" 
+                          min="0" 
+                          step="1"
+                          className="flex-1 border-2 border-charcoal/40 p-3 md:p-4 text-[9px] md:text-[10px] font-bold outline-none focus:border-gold text-charcoal bg-[#F5F2ED] rounded-xl disabled:opacity-40" 
+                          value={formData.shipping_cost || ''} 
+                          disabled={parseFloat(formData.shipping_cost) === 0}
+                          onChange={e => setFormData({...formData, shipping_cost: e.target.value})} 
+                          placeholder="e.g. 199"
+                        />
+                        <label className="flex items-center gap-2 cursor-pointer select-none shrink-0">
+                          <input 
+                            type="checkbox" 
+                            checked={parseFloat(formData.shipping_cost) === 0}
+                            onChange={e => setFormData({...formData, shipping_cost: e.target.checked ? 0 : 199})}
+                            className="w-4 h-4 accent-gold"
+                          />
+                          <span className="text-[9px] md:text-[10px] uppercase tracking-[0.15em] text-gold font-bold">Free Shipping</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Shipping Description */}
+                    <div className="space-y-2">
+                      <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Shipping Manifesto (Display Text)</label>
                       <textarea className="w-full border-2 border-charcoal/40 p-3 md:p-4 text-[9px] md:text-[10px] font-bold leading-relaxed outline-none focus:border-gold h-20 resize-none text-charcoal bg-[#F5F2ED] rounded-xl" value={formData.shipping} onChange={e => setFormData({...formData, shipping: e.target.value})} />
                     </div>
                     

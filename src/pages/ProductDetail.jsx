@@ -8,6 +8,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import LazyImage from '../components/ui/LazyImage';
 import SEO from '../components/ui/SEO';
+import RichText from '../components/ui/RichText';
 import ReviewSection from '../components/shop/ReviewSection';
 
 const ProductDetail = () => {
@@ -236,35 +237,44 @@ const ProductDetail = () => {
                 </div>
               )}
 
-              <div className="text-base md:text-lg text-charcoal/90 mb-10 leading-relaxed max-w-md font-medium">
-                <p>{product.description}</p>
-              </div>
+              <RichText 
+                text={product.description} 
+                className="text-base md:text-lg text-charcoal/90 mb-10 leading-relaxed max-w-md font-medium" 
+              />
 
               {/* Composition */}
-              <div className="mb-10 space-y-6">
-                <h3 className="text-xs uppercase tracking-widest font-black border-b-2 border-charcoal/20 pb-2">Olfactory Pyramid</h3>
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-charcoal/70 block font-bold">Top</span>
-                    <p className="text-sm md:text-base font-bold italic">{product.scent_notes?.top?.join(", ")}</p>
-                  </div>
-                  <div>
-                    <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-charcoal/70 block font-bold">Heart</span>
-                    <p className="text-sm md:text-base font-bold italic">{product.scent_notes?.heart?.join(", ")}</p>
-                  </div>
-                  <div>
-                    <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-charcoal/70 block font-bold">Base</span>
-                    <p className="text-sm md:text-base font-bold italic">{product.scent_notes?.base?.join(", ")}</p>
+              {(product.scent_notes?.top?.length > 0 || product.scent_notes?.heart?.length > 0 || product.scent_notes?.base?.length > 0) && (
+                <div className="mb-10 space-y-6">
+                  <h3 className="text-xs uppercase tracking-widest font-black border-b-2 border-charcoal/20 pb-2">Olfactory Pyramid</h3>
+                  <div className="grid grid-cols-1 gap-4">
+                    {product.scent_notes?.top?.length > 0 && (
+                      <div>
+                        <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-charcoal/70 block font-bold">Top</span>
+                        <p className="text-sm md:text-base font-bold italic">{product.scent_notes.top.join(", ")}</p>
+                      </div>
+                    )}
+                    {product.scent_notes?.heart?.length > 0 && (
+                      <div>
+                        <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-charcoal/70 block font-bold">Heart</span>
+                        <p className="text-sm md:text-base font-bold italic">{product.scent_notes.heart.join(", ")}</p>
+                      </div>
+                    )}
+                    {product.scent_notes?.base?.length > 0 && (
+                      <div>
+                        <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-charcoal/70 block font-bold">Base</span>
+                        <p className="text-sm md:text-base font-bold italic">{product.scent_notes.base.join(", ")}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
+              )}
 
               <div className="flex flex-col gap-4 mb-10">
                 <button 
                   onClick={addToCart}
                   className="w-full bg-charcoal text-ivory py-4 uppercase tracking-[0.3em] text-[10px] hover:bg-gold hover:text-charcoal transition-all flex items-center justify-center gap-3 font-bold shadow-xl shadow-charcoal/20"
                 >
-                  <ShoppingBag size={14} strokeWidth={2} /> Add to Collection
+                  <ShoppingBag size={14} strokeWidth={2} /> Add to Cart
                 </button>
               </div>
 

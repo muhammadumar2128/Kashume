@@ -76,7 +76,10 @@ export const CartProvider = ({ children }) => {
       subtotal += parseFloat(item.price);
     });
 
-    const shipping = subtotal < 3000 && subtotal > 0 ? 199 : 0;
+    // Per-product shipping: use the maximum shipping_cost across all cart items
+    const shipping = state.items.length > 0
+      ? Math.max(...state.items.map(item => parseFloat(item.shipping_cost) || 0), 0)
+      : 0;
 
     return { subtotal, total: subtotal + shipping, shipping, savings, appliedBundles };
   };

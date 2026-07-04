@@ -171,7 +171,7 @@ const Home = () => {
                 className="group relative flex flex-col md:flex-row gap-10 items-start"
               >
                 {/* Image Side - Compact & Framed */}
-                <Link to={`/bundle/${bundle.id}`} className="w-[85%] md:w-[45%] block group/img">
+                <Link to={`/bundle/${bundle.id}`} className="w-[85%] mx-auto md:mx-0 md:w-[45%] block group/img">
                   <div className="aspect-[3/4] overflow-hidden rounded-xl md:rounded-2xl bg-white shadow-sm ring-1 ring-charcoal/20 relative flex items-center justify-center [transform:translateZ(0)]">
                     <motion.img 
                       initial={{ opacity: 0, scale: 1.15, filter: "blur(10px)" }}
@@ -253,7 +253,7 @@ const Home = () => {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 1.5 }}
-            className="font-serif italic text-2xl md:text-5xl font-light leading-relaxed mb-16 overflow-hidden"
+            className="font-serif italic text-2xl md:text-5xl font-light leading-relaxed mb-16"
           >
             {`"We don't just create scents; we preserve memories in liquid form. Every bottle of Kashume is a chapter of a story yet to be told."`.split(' ').map((word, i) => (
               <motion.span
