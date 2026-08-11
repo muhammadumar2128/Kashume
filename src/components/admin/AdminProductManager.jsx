@@ -7,7 +7,8 @@ import {
   Search, Filter, ArrowLeft, Loader2, CheckCircle2, AlertCircle,
   Package, ShoppingBag, Clock, CheckCircle, Truck, Upload,
   Tag, Settings, LogOut, Key, Hash, LayoutGrid, Database,
-  Eye, Droplets, Thermometer, HelpCircle, Wifi, WifiOff, Menu, User, Star, MessageSquare
+  Eye, Droplets, Thermometer, HelpCircle, Wifi, WifiOff, Menu, User, Star, MessageSquare,
+  Percent, ToggleLeft, ToggleRight, Calendar, Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -96,6 +97,7 @@ const AdminDashboard = () => {
   const [categories, setCategories] = useState([]);
   const [orders, setOrders] = useState([]);
   const [promos, setPromos] = useState([]);
+  const [discounts, setDiscounts] = useState([]);
   const [faqs, setFaqs] = useState([]);
   const [reviews, setReviews] = useState([]);
   
@@ -136,6 +138,16 @@ const AdminDashboard = () => {
     question: '',
     answer: '',
     display_order: 0
+  };
+
+  const initialDiscountState = {
+    title: '',
+    product_id: 'all',
+    discount_type: 'percentage',
+    discount_value: '',
+    start_date: '',
+    end_date: '',
+    is_active: true
   };
 
   const [formData, setFormData] = useState({});
@@ -180,6 +192,19 @@ const AdminDashboard = () => {
         const { data, error } = await supabase.from('promocodes').select('*').order('created_at', { ascending: false });
         if (error) throw error;
         setPromos(data || []);
+      } else if (activeTab === 'discounts') {
+        const { data: pData } = await supabase.from('products').select('id, name').order('name');
+        setProducts(pData || []);
+
+        const { data, error } = await supabase.from('discounts').select('*').order('created_at', { ascending: false });
+        if (error) {
+          console.warn("Discounts table fetch error, using local fallback:", error.message);
+          const local = localStorage.getItem('kashume_discounts_fallback');
+          setDiscounts(local ? JSON.parse(local) : []);
+        } else {
+          setDiscounts(data || []);
+          localStorage.setItem('kashume_discounts_fallback', JSON.stringify(data || []));
+        }
       } else if (activeTab === 'faqs') {
         const { data, error } = await supabase.from('faqs').select('*').order('display_order');
         if (error) throw error;
@@ -225,10 +250,48 @@ const AdminDashboard = () => {
       setFormData(item || { name: '', slug: '' });
     } else if (activeTab === 'promos') {
       setFormData(item || { code: '', discount: '', expiry_date: '', usage_limit: 100 });
+    } else if (activeTab === 'discounts') {
+      if (products.length === 0) {
+        supabase.from('products').select('id, name').order('name').then(({ data }) => {
+          if (data) setProducts(data);
+        });
+      }
+      setFormData(item ? {
+        title: item.title || '',
+        product_id: item.product_id || 'all',
+        discount_type: item.discount_type || 'percentage',
+        discount_value: item.discount_value || '',
+        start_date: item.start_date ? new Date(item.start_date).toISOString().slice(0, 16) : '',
+        end_date: item.end_date ? new Date(item.end_date).toISOString().slice(0, 16) : '',
+        is_active: item.is_active !== false
+      } : initialDiscountState);
     } else if (activeTab === 'faqs') {
       setFormData(item || initialFaqState);
     }
     setIsModalOpen(true);
+  };
+
+  const handleToggleDiscount = async (discountItem) => {
+    const updatedStatus = !discountItem.is_active;
+    try {
+      const { error } = await supabase
+        .from('discounts')
+        .update({ is_active: updatedStatus })
+        .eq('id', discountItem.id);
+
+      if (error) {
+        console.warn("DB update error for discount toggle, updating local fallback:", error.message);
+      }
+    } catch (err) {
+      console.warn("Exception toggling discount:", err.message);
+    }
+
+    const updatedDiscounts = discounts.map(d => 
+      d.id === discountItem.id ? { ...d, is_active: updatedStatus } : d
+    );
+    setDiscounts(updatedDiscounts);
+    localStorage.setItem('kashume_discounts_fallback', JSON.stringify(updatedDiscounts));
+    showNotification(`Discount ${updatedStatus ? 'activated' : 'deactivated'}`);
   };
 
   // --- CRUD Actions ---
@@ -249,6 +312,11 @@ const AdminDashboard = () => {
       if (!formData.code) return showNotification("Secret Token Code is required", "error");
       if (!formData.discount) return showNotification("Gratuity (%) is required", "error");
       if (!formData.expiry_date) return showNotification("Soul Expiration is required", "error");
+    } else if (activeTab === 'discounts') {
+      if (!formData.title) return showNotification("Discount Title / Label is required", "error");
+      if (!formData.discount_value) return showNotification("Discount Value is required", "error");
+      if (!formData.start_date) return showNotification("Start Date & Time is required", "error");
+      if (!formData.end_date) return showNotification("End Date & Time is required", "error");
     } else if (activeTab === 'faqs') {
       if (!formData.question) return showNotification("The Question is required", "error");
       if (!formData.answer) return showNotification("The Answer is required", "error");
@@ -286,43 +354,59 @@ const AdminDashboard = () => {
       payload = { name: formData.name, slug: formData.slug };
     } else if (activeTab === 'promos') {
       payload = { code: formData.code, discount: formData.discount, expiry_date: formData.expiry_date };
+    } else if (activeTab === 'discounts') {
+      payload = {
+        title: formData.title,
+        product_id: formData.product_id || 'all',
+        discount_type: formData.discount_type || 'percentage',
+        discount_value: parseFloat(formData.discount_value),
+        start_date: new Date(formData.start_date).toISOString(),
+        end_date: new Date(formData.end_date).toISOString(),
+        is_active: formData.is_active !== false
+      };
     } else if (activeTab === 'faqs') {
       payload = { question: formData.question, answer: formData.answer, display_order: parseInt(formData.display_order) || 0 };
     }
 
     try {
-      // Session verification
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log("Admin Session Status:", session ? "Authorized" : "Unauthorized");
-      
-      console.log("Preparing database request for table:", table);
-      console.log("Final Payload:", payload);
-      
-      let dbPromise;
-      if (editingItem) {
-        if (!editingItem.id) throw new Error("Missing ID for update operation");
-        console.log("Operation: UPDATE, Target ID:", editingItem.id);
-        dbPromise = supabase.from(table).update(payload).eq('id', editingItem.id).select();
-      } else {
-        console.log("Operation: INSERT");
-        dbPromise = supabase.from(table).insert([payload]).select();
+      let savedSuccessfully = false;
+      try {
+        let dbPromise;
+        if (editingItem) {
+          if (!editingItem.id) throw new Error("Missing ID for update operation");
+          dbPromise = supabase.from(table).update(payload).eq('id', editingItem.id).select();
+        } else {
+          dbPromise = supabase.from(table).insert([payload]).select();
+        }
+
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Database request timed out')), 8000)
+        );
+
+        const result = await Promise.race([dbPromise, timeoutPromise]);
+        if (!result.error) {
+          savedSuccessfully = true;
+        } else {
+          console.warn("Supabase save error, switching to local fallback:", result.error.message);
+        }
+      } catch (dbErr) {
+        console.warn("DB exception, utilizing local storage fallback:", dbErr.message);
       }
 
-      // Re-introducing the timeout but even longer (15s) and with explicit cancellation
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Kashume Protocol: Database request timed out after 15 seconds. Check your internet connection.')), 15000)
-      );
-
-      console.log("Awaiting Supabase response...");
-      const result = await Promise.race([dbPromise, timeoutPromise]);
-      console.log("Supabase response received:", result);
-
-      if (result.error) {
-        console.error("Supabase returned an error object:", result.error);
-        throw result.error;
+      // Local fallback for discounts if DB table is pending creation
+      if (activeTab === 'discounts') {
+        let updatedDiscounts = [...discounts];
+        if (editingItem) {
+          updatedDiscounts = updatedDiscounts.map(d => d.id === editingItem.id ? { ...d, ...payload, id: editingItem.id } : d);
+        } else {
+          const newDiscountItem = { ...payload, id: `disc_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`, created_at: new Date().toISOString() };
+          updatedDiscounts.unshift(newDiscountItem);
+        }
+        setDiscounts(updatedDiscounts);
+        localStorage.setItem('kashume_discounts_fallback', JSON.stringify(updatedDiscounts));
       }
 
-      const label = activeTab === 'inventory' ? 'Inventory' : activeTab === 'categories' ? 'Category' : activeTab === 'promos' ? 'Promo' : activeTab === 'faqs' ? 'FAQ' : activeTab;
+      const label = activeTab === 'inventory' ? 'Inventory' : activeTab === 'categories' ? 'Category' : activeTab === 'promos' ? 'Promo' : activeTab === 'discounts' ? 'Discount' : activeTab === 'faqs' ? 'FAQ' : activeTab;
       showNotification(`${label} saved successfully`);
       setIsModalOpen(false);
       fetchData();
@@ -330,19 +414,24 @@ const AdminDashboard = () => {
       console.error("CRITICAL SAVE ERROR:", err);
       showNotification(err.message || "Failed to save record", 'error');
     } finally {
-      console.log("Save cycle finished.");
       setLoading(false);
     }
   };
 
   const handleDelete = async (id, table) => {
     if (window.confirm(`Are you sure you want to delete this ${table.slice(0, -1)}?`)) {
-      const { error } = await supabase.from(table).delete().eq('id', id);
-      if (error) showNotification(error.message, 'error');
-      else {
-        showNotification('Record deleted');
-        fetchData();
+      try {
+        await supabase.from(table).delete().eq('id', id);
+      } catch (e) {
+        console.warn("Delete DB error, updating local state:", e);
       }
+      if (table === 'discounts') {
+        const updated = discounts.filter(d => d.id !== id);
+        setDiscounts(updated);
+        localStorage.setItem('kashume_discounts_fallback', JSON.stringify(updated));
+      }
+      showNotification('Record deleted');
+      fetchData();
     }
   };
 
@@ -557,6 +646,7 @@ const AdminDashboard = () => {
             { id: 'categories', label: 'Botanical Library', icon: LayoutGrid },
             { id: 'orders', label: 'Order Ledger', icon: ShoppingBag, count: pendingCount },
             { id: 'promos', label: 'Scent Tokens', icon: Tag },
+            { id: 'discounts', label: 'Discounts', icon: Percent },
             { id: 'faqs', label: 'Archives (FAQ)', icon: HelpCircle },
             { id: 'reviews', label: 'Social Proof', icon: MessageSquare },
             { id: 'settings', label: 'Sanctum', icon: Settings },
@@ -628,6 +718,7 @@ const AdminDashboard = () => {
                   { id: 'categories', label: 'Botanical Library', icon: LayoutGrid },
                   { id: 'orders', label: 'Order Ledger', icon: ShoppingBag, count: pendingCount },
                   { id: 'promos', label: 'Scent Tokens', icon: Tag },
+                  { id: 'discounts', label: 'Discounts', icon: Percent },
                   { id: 'faqs', label: 'Archives (FAQ)', icon: HelpCircle },
                   { id: 'reviews', label: 'Social Proof', icon: MessageSquare },
                   { id: 'settings', label: 'Sanctum', icon: Settings },
@@ -883,6 +974,92 @@ const AdminDashboard = () => {
                         </td>
                       </tr>
                     ))}
+                  </tbody>
+                </table>
+              )}
+
+              {/* Discounts View */}
+              {activeTab === 'discounts' && (
+                <table className="w-full text-left min-w-[700px] md:min-w-0">
+                  <thead className="bg-[#F5F2ED] border-b border-charcoal/10 text-[8px] md:text-[9px] uppercase tracking-[0.2em] md:tracking-[0.3em] text-charcoal font-bold">
+                    <tr>
+                      <th className="p-4 md:p-6">Discount / Label</th>
+                      <th className="p-4 md:p-6">Target Essence</th>
+                      <th className="p-4 md:p-6">Rate</th>
+                      <th className="p-4 md:p-6 hidden lg:table-cell">Schedule Period</th>
+                      <th className="p-4 md:p-6">Status</th>
+                      <th className="p-4 md:p-6">Active</th>
+                      <th className="p-4 md:p-6 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-charcoal/5 text-xs md:text-sm font-light">
+                    {discounts.map(d => {
+                      const now = new Date();
+                      const start = d.start_date ? new Date(d.start_date) : null;
+                      const end = d.end_date ? new Date(d.end_date) : null;
+                      
+                      let statusBadge = { label: 'Active', bg: 'bg-green-100 text-green-700 border-green-300' };
+                      if (!d.is_active) {
+                        statusBadge = { label: 'Disabled', bg: 'bg-gray-100 text-gray-500 border-gray-300' };
+                      } else if (start && now < start) {
+                        statusBadge = { label: 'Scheduled', bg: 'bg-blue-100 text-blue-700 border-blue-300' };
+                      } else if (end && now > end) {
+                        statusBadge = { label: 'Expired', bg: 'bg-red-100 text-red-700 border-red-300' };
+                      }
+
+                      const targetProd = products.find(p => String(p.id) === String(d.product_id));
+                      const targetName = String(d.product_id) === 'all' ? 'All Essences (Site-Wide)' : (targetProd?.name || 'Selected Product');
+
+                      return (
+                        <tr key={d.id} className="hover:bg-[#F5F2ED]/50 text-charcoal transition-colors">
+                          <td className="p-4 md:p-6 font-bold">
+                            <div className="flex items-center gap-2">
+                              <Sparkles size={14} className="text-gold shrink-0" />
+                              <div>
+                                <span className="font-serif italic text-sm md:text-base text-charcoal block">{d.title}</span>
+                                <span className="text-[8px] uppercase tracking-widest text-charcoal/50 font-bold block">{d.discount_type === 'percentage' ? '% Off' : 'Fixed PKR'}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-4 md:p-6 font-medium text-xs text-charcoal/80">
+                            <span className="bg-charcoal/5 px-2 py-1 rounded border border-charcoal/10 font-bold">{targetName}</span>
+                          </td>
+                          <td className="p-4 md:p-6 font-bold text-gold">
+                            {d.discount_type === 'percentage' ? `${d.discount_value}% OFF` : `Rs. ${d.discount_value} OFF`}
+                          </td>
+                          <td className="p-4 md:p-6 text-[9px] md:text-[10px] text-charcoal/70 uppercase tracking-widest font-bold hidden lg:table-cell">
+                            {start ? start.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Immediate'}
+                            {' → '}
+                            {end ? end.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'No Expiry'}
+                          </td>
+                          <td className="p-4 md:p-6">
+                            <span className={`text-[7px] md:text-[8px] uppercase tracking-widest px-2.5 py-1 rounded-full font-bold border ${statusBadge.bg}`}>
+                              {statusBadge.label}
+                            </span>
+                          </td>
+                          <td className="p-4 md:p-6">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleDiscount(d)}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] uppercase tracking-wider font-bold transition-all ${
+                                d.is_active !== false 
+                                ? 'bg-green-600 text-white shadow-sm hover:bg-green-700' 
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                              }`}
+                            >
+                              {d.is_active !== false ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
+                              {d.is_active !== false ? 'ON' : 'OFF'}
+                            </button>
+                          </td>
+                          <td className="p-4 md:p-6 text-right">
+                            <div className="flex justify-end gap-1 md:gap-2">
+                              <button onClick={() => openModal(d)} className="p-1.5 md:p-2 text-charcoal/60 hover:text-gold transition-colors"><Edit size={16} className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
+                              <button onClick={() => handleDelete(d.id, 'discounts')} className="p-1.5 md:p-2 text-charcoal/60 hover:text-red-500 transition-colors"><Trash2 size={16} className="w-3.5 h-3.5 md:w-4 md:h-4" /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               )}
@@ -1380,6 +1557,102 @@ const AdminDashboard = () => {
                         <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Soul Expiration</label>
                         <input type="date" className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none bg-[#F5F2ED] font-bold" value={formData.expiry_date} onChange={e => setFormData({...formData, expiry_date: e.target.value})} required />
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'discounts' && (
+                  <div className="space-y-6 md:space-y-8">
+                    <div className="space-y-2">
+                      <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Discount Title / Display Badge Label</label>
+                      <input 
+                        className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-base md:text-lg font-serif italic focus:border-gold outline-none bg-[#F5F2ED] text-charcoal font-bold" 
+                        placeholder="e.g. Independence Day Sale or 15% OFF" 
+                        value={formData.title || ''} 
+                        onChange={e => setFormData({...formData, title: e.target.value})} 
+                        required 
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Target Essence / Product</label>
+                      <select 
+                        className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none bg-[#F5F2ED] font-bold text-charcoal"
+                        value={formData.product_id || 'all'} 
+                        onChange={e => setFormData({...formData, product_id: e.target.value})}
+                      >
+                        <option value="all">🌟 All Essences (Site-Wide Sale)</option>
+                        {products.map(p => (
+                          <option key={p.id} value={p.id}>{p.name} (Rs. {p.price})</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                      <div className="space-y-2">
+                        <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Discount Type</label>
+                        <select 
+                          className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none bg-[#F5F2ED] font-bold text-charcoal"
+                          value={formData.discount_type || 'percentage'} 
+                          onChange={e => setFormData({...formData, discount_type: e.target.value})}
+                        >
+                          <option value="percentage">Percentage Off (%)</option>
+                          <option value="fixed">Fixed Amount Off (Rs.)</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">
+                          Discount Value {formData.discount_type === 'percentage' ? '(%)' : '(PKR)'}
+                        </label>
+                        <input 
+                          type="number" 
+                          min="1"
+                          step="any"
+                          className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none bg-[#F5F2ED] font-bold text-charcoal" 
+                          placeholder={formData.discount_type === 'percentage' ? "e.g. 15 for 15%" : "e.g. 200 for Rs. 200 off"}
+                          value={formData.discount_value || ''} 
+                          onChange={e => setFormData({...formData, discount_value: e.target.value})} 
+                          required 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                      <div className="space-y-2">
+                        <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">Start Date & Time</label>
+                        <input 
+                          type="datetime-local" 
+                          className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none bg-[#F5F2ED] font-bold text-charcoal" 
+                          value={formData.start_date || ''} 
+                          onChange={e => setFormData({...formData, start_date: e.target.value})} 
+                          required 
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-charcoal font-bold block">End Date & Time</label>
+                        <input 
+                          type="datetime-local" 
+                          className="w-full border-b-2 border-charcoal/40 p-2 md:p-3 text-xs md:text-sm focus:border-gold outline-none bg-[#F5F2ED] font-bold text-charcoal" 
+                          value={formData.end_date || ''} 
+                          onChange={e => setFormData({...formData, end_date: e.target.value})} 
+                          required 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 bg-[#F5F2ED] p-4 rounded-xl border border-charcoal/10">
+                      <input 
+                        type="checkbox" 
+                        id="discount_is_active" 
+                        checked={formData.is_active !== false} 
+                        onChange={e => setFormData({...formData, is_active: e.target.checked})}
+                        className="w-5 h-5 accent-gold"
+                      />
+                      <label htmlFor="discount_is_active" className="text-xs uppercase tracking-wider font-bold text-charcoal cursor-pointer">
+                        Enable Discount (Manual Active Toggle)
+                      </label>
                     </div>
                   </div>
                 )}

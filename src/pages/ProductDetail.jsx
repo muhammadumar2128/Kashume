@@ -3,9 +3,11 @@ import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/layout/Navbar';
 import { supabase } from '../lib/supabaseClient';
-import { ShoppingBag, Truck, ShieldCheck, Clock, Phone, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingBag, Truck, ShieldCheck, Clock, Phone, ChevronLeft, ChevronRight, Tag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useDiscounts } from '../context/DiscountContext';
+import { getEffectiveProductPrice } from '../lib/discountUtils';
 import LazyImage from '../components/ui/LazyImage';
 import SEO from '../components/ui/SEO';
 import RichText from '../components/ui/RichText';
@@ -15,10 +17,13 @@ const ProductDetail = () => {
   const { id } = useParams();
   const { dispatch } = useCart();
   const { user, profile } = useAuth();
+  const { discounts } = useDiscounts();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState(null);
+
+  const discountInfo = getEffectiveProductPrice(product, discounts);
 
   useEffect(() => {
     if (product?.sizes?.length > 0) {
@@ -98,12 +103,24 @@ const ProductDetail = () => {
   };
 
   const addToCart = () => {
-    const priceToUse = selectedSize ? selectedSize.price : product.price;
+    let basePriceToUse = selectedSize ? selectedSize.price : product.price;
+    let finalPriceToUse = basePriceToUse;
+
+    if (discountInfo.hasDiscount) {
+      if (selectedSize) {
+        finalPriceToUse = Math.max(0, Math.round(selectedSize.price * (discountInfo.price / (product.price || discountInfo.price || 1))));
+      } else {
+        finalPriceToUse = discountInfo.price;
+      }
+    }
+
     dispatch({ 
       type: 'ADD_ITEM', 
       payload: {
         ...product,
-        price: priceToUse,
+        price: finalPriceToUse,
+        original_price: discountInfo.hasDiscount ? (selectedSize ? selectedSize.price : discountInfo.originalPrice) : product.original_price,
+        discount_label: discountInfo.badge,
         selectedSize: selectedSize ? selectedSize.volume : null
       } 
     });
@@ -114,7 +131,7 @@ const ProductDetail = () => {
         content_name: product.name,
         content_ids: [product.id],
         content_type: 'product',
-        value: priceToUse,
+        value: finalPriceToUse,
         currency: 'PKR'
       });
     }
@@ -124,6 +141,14 @@ const ProductDetail = () => {
   if (!product) return <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center font-light text-charcoal/40">Essence not found.</div>;
 
   const displayImages = product.images?.length > 0 ? product.images : (product.image ? [product.image] : []);
+
+  const currentDisplayPrice = discountInfo.hasDiscount 
+    ? (selectedSize ? Math.max(0, Math.round(selectedSize.price * (discountInfo.price / (product.price || discountInfo.price || 1)))) : discountInfo.price)
+    : (selectedSize ? selectedSize.price : product.price);
+
+  const currentOriginalPrice = discountInfo.hasDiscount
+    ? (selectedSize ? selectedSize.price : discountInfo.originalPrice)
+    : (product.original_price && product.original_price > currentDisplayPrice ? product.original_price : null);
 
   return (
     <main className="bg-[#FAF9F6] min-h-screen pt-32 pb-24 font-light">
@@ -193,18 +218,30 @@ const ProductDetail = () => {
               )}
             </div>
             
-            {/* Elegant Floating Badge */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.8, duration: 0.8 }}
-              className="absolute -top-4 -right-4 bg-gold text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg z-20"
-            >
-              <div className="text-center">
-                <span className="text-[8px] uppercase tracking-tighter block leading-none font-bold">Original</span>
-                <span className="text-[10px] font-serif italic block font-bold">Scent</span>
-              </div>
-            </motion.div>
+            {/* Dynamic Floating Discount Badge */}
+            {discountInfo.hasDiscount ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4, duration: 0.6 }}
+                className="absolute -top-4 -right-4 bg-red-600 text-white p-4 rounded-2xl shadow-xl z-20 flex flex-col items-center justify-center text-center ring-4 ring-white"
+              >
+                <Tag size={18} className="mb-1" />
+                <span className="text-[10px] uppercase font-black tracking-widest">{discountInfo.badge}</span>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.8, duration: 0.8 }}
+                className="absolute -top-4 -right-4 bg-gold text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg z-20"
+              >
+                <div className="text-center">
+                  <span className="text-[8px] uppercase tracking-tighter block leading-none font-bold">Original</span>
+                  <span className="text-[10px] font-serif italic block font-bold">Scent</span>
+                </div>
+              </motion.div>
+            )}
           </motion.div>
 
           {/* Details */}
@@ -214,9 +251,26 @@ const ProductDetail = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <span className="text-[10px] uppercase tracking-[0.4em] text-gold mb-4 block font-black">{product.category}</span>
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-[10px] uppercase tracking-[0.4em] text-gold font-black">{product.category}</span>
+                {discountInfo.hasDiscount && (
+                  <span className="bg-red-600 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+                    <Tag size={10} /> {discountInfo.badge}
+                  </span>
+                )}
+              </div>
               <h1 className="text-4xl md:text-5xl font-light text-charcoal mb-4 tracking-tight uppercase leading-tight font-serif italic">{product.name}</h1>
-              <p className="text-xl text-charcoal/80 mb-8 font-sans font-bold">Rs. {selectedSize ? selectedSize.price : product.price}</p>
+              
+              <div className="flex items-baseline gap-4 mb-8">
+                <p className="text-2xl text-charcoal font-sans font-bold">
+                  Rs. {currentDisplayPrice}
+                </p>
+                {currentOriginalPrice && currentOriginalPrice > currentDisplayPrice && (
+                  <p className="text-base text-charcoal/40 line-through font-sans font-bold">
+                    Rs. {currentOriginalPrice}
+                  </p>
+                )}
+              </div>
               
               {/* Size Selector */}
               {product.sizes && product.sizes.length > 0 && (

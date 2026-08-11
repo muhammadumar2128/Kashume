@@ -1,13 +1,22 @@
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../../context/CartContext';
-import { ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useDiscounts } from '../../context/DiscountContext';
+import { getEffectiveProductPrice } from '../../lib/discountUtils';
+import { ShoppingBag, ChevronLeft, ChevronRight, Tag } from 'lucide-react';
 import LazyImage from '../ui/LazyImage';
 import { useState, useEffect } from 'react';
 
 const ProductCard = ({ product, index, isNew = false }) => {
   const { dispatch } = useCart();
+  const { discounts } = useDiscounts();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const discountInfo = getEffectiveProductPrice(product, discounts);
+  const effectivePrice = discountInfo.hasDiscount ? discountInfo.price : product.price;
+  const originalPriceDisplay = discountInfo.hasDiscount 
+    ? discountInfo.originalPrice 
+    : (product.original_price && product.original_price > product.price ? product.original_price : null);
 
   const images = product.images?.length > 0 ? product.images : (product.image ? [product.image] : []);
 
@@ -38,6 +47,9 @@ const ProductCard = ({ product, index, isNew = false }) => {
 
     let cartItem = {
       ...product,
+      price: effectivePrice,
+      original_price: discountInfo.hasDiscount ? discountInfo.originalPrice : product.original_price,
+      discount_label: discountInfo.badge,
       image: images[0]
     };
 
@@ -45,7 +57,9 @@ const ProductCard = ({ product, index, isNew = false }) => {
     if (product.sizes?.length > 0) {
       cartItem = {
         ...cartItem,
-        price: product.sizes[0].price,
+        price: discountInfo.hasDiscount 
+          ? Math.max(0, Math.round(product.sizes[0].price * (effectivePrice / (product.price || effectivePrice || 1))))
+          : product.sizes[0].price,
         selectedSize: product.sizes[0].volume
       };
     }
@@ -128,13 +142,20 @@ const ProductCard = ({ product, index, isNew = false }) => {
             </button>
           </div>
 
-          {isNew && (
-            <div className="absolute top-2 left-2 md:top-4 md:left-4 z-20">
+          {/* Badges Container */}
+          <div className="absolute top-2 left-2 md:top-4 md:left-4 z-20 flex flex-col gap-1.5 items-start">
+            {isNew && (
               <span className="text-[6px] md:text-[8px] bg-charcoal text-ivory px-1.5 md:px-2 py-0.5 md:py-1 uppercase tracking-widest font-bold rounded-sm shadow-sm">
                 New
               </span>
-            </div>
-          )}
+            )}
+            {discountInfo.hasDiscount && (
+              <span className="text-[6px] md:text-[8px] bg-red-600 text-white px-1.5 md:px-2 py-0.5 md:py-1 uppercase tracking-widest font-black rounded-sm shadow-md flex items-center gap-1">
+                <Tag size={10} className="w-2.5 h-2.5" />
+                {discountInfo.badge}
+              </span>
+            )}
+          </div>
 
           {product.gender && (
             <div className="absolute top-2 right-2 md:top-4 md:right-4 z-20">
@@ -153,12 +174,12 @@ const ProductCard = ({ product, index, isNew = false }) => {
             {product.name}
           </h3>
           <div className="flex items-center justify-center gap-2">
-            <p className="font-sans text-[10px] md:text-[12px] font-bold text-charcoal/70 tracking-[0.1em]">
-              Rs. {product.price}
+            <p className="font-sans text-[10px] md:text-[12px] font-bold text-charcoal tracking-[0.1em]">
+              Rs. {effectivePrice}
             </p>
-            {product.original_price && product.original_price > product.price && (
+            {originalPriceDisplay && originalPriceDisplay > effectivePrice && (
               <p className="font-sans text-[8px] md:text-[10px] font-bold text-charcoal/40 line-through tracking-[0.1em]">
-                Rs. {product.original_price}
+                Rs. {originalPriceDisplay}
               </p>
             )}
           </div>
