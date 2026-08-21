@@ -3,9 +3,11 @@ import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/layout/Navbar';
 import { supabase } from '../lib/supabaseClient';
-import { ShoppingBag, Truck, Award, Clock, Phone, CheckCircle2 } from 'lucide-react';
+import { ShoppingBag, Truck, Award, Clock, Phone, CheckCircle2, Tag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useDiscounts } from '../context/DiscountContext';
+import { getEffectiveProductPrice } from '../lib/discountUtils';
 import LazyImage from '../components/ui/LazyImage';
 import SEO from '../components/ui/SEO';
 import ReviewSection from '../components/shop/ReviewSection';
@@ -14,9 +16,13 @@ const BundleDetail = () => {
   const { id } = useParams();
   const { dispatch } = useCart();
   const { user, profile } = useAuth();
+  const { discounts } = useDiscounts();
   const [bundle, setBundle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const discountInfo = getEffectiveProductPrice(bundle, discounts);
+
 
   useEffect(() => {
     const fetchBundle = async () => {
@@ -60,7 +66,18 @@ const BundleDetail = () => {
   }, [bundle?.images]);
 
   const addToCart = () => {
-    dispatch({ type: 'ADD_ITEM', payload: bundle });
+    const finalPrice = discountInfo.hasDiscount ? discountInfo.price : bundle.price;
+    const finalOriginalPrice = discountInfo.hasDiscount ? discountInfo.originalPrice : bundle.original_price;
+
+    dispatch({ 
+      type: 'ADD_ITEM', 
+      payload: {
+        ...bundle,
+        price: finalPrice,
+        original_price: finalOriginalPrice,
+        discount_label: discountInfo.badge
+      } 
+    });
     
     // Track AddToCart Pixel Event
     if (window.fbq && bundle) {
@@ -68,7 +85,7 @@ const BundleDetail = () => {
         content_name: bundle.name,
         content_ids: [bundle.id],
         content_type: 'product_group',
-        value: bundle.price,
+        value: finalPrice,
         currency: 'PKR'
       });
     }
@@ -78,6 +95,11 @@ const BundleDetail = () => {
   if (!bundle) return <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center font-light text-charcoal/40">Bundle not found.</div>;
 
   const displayImages = bundle.images?.length > 0 ? bundle.images : (bundle.image ? [bundle.image] : ["/images/DATA 1.O/Bundles/1.png"]);
+
+  const currentDisplayPrice = discountInfo.hasDiscount ? discountInfo.price : bundle.price;
+  const currentOriginalPrice = discountInfo.hasDiscount 
+    ? discountInfo.originalPrice 
+    : (bundle.original_price && bundle.original_price > bundle.price ? bundle.original_price : null);
 
   return (
     <main className="bg-[#FAF9F6] min-h-screen pt-32 pb-24 font-light">
@@ -127,10 +149,15 @@ const BundleDetail = () => {
               )}
             </div>
             
-            <div className="absolute top-6 left-6 z-20">
-              <span className="bg-charcoal text-white text-[8px] px-3 py-1.5 uppercase tracking-[0.3em] font-bold rounded-full shadow-xl ring-1 ring-white/10">
+            <div className="absolute top-4 left-4 md:top-6 md:left-6 z-20 flex flex-col gap-2">
+              <span className="bg-charcoal text-white text-[8px] md:text-[9px] px-2.5 md:px-3 py-1 md:py-1.5 uppercase tracking-[0.2em] font-bold rounded-full shadow-xl ring-1 ring-white/10">
                 Limited Collection
               </span>
+              {discountInfo.hasDiscount && (
+                <span className="bg-red-600 text-white text-[8px] md:text-[9px] px-2.5 md:px-3 py-1 md:py-1.5 uppercase tracking-[0.2em] font-black rounded-full shadow-xl ring-1 ring-white/10 flex items-center gap-1">
+                  <Tag size={10} /> {discountInfo.badge}
+                </span>
+              )}
             </div>
           </motion.div>
 
@@ -141,13 +168,25 @@ const BundleDetail = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <span className="text-[10px] uppercase tracking-[0.4em] text-gold mb-4 block font-black">Bundle Savings</span>
+              <div className="flex items-center gap-3 mb-4 flex-wrap">
+                <span className="text-[10px] uppercase tracking-[0.4em] text-gold font-black">Bundle Savings</span>
+                {discountInfo.hasDiscount && (
+                  <span className="bg-red-600 text-white text-[9px] md:text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1.5">
+                    <Tag size={10} /> {discountInfo.badge}
+                  </span>
+                )}
+              </div>
               <h1 className="text-4xl md:text-5xl font-light text-charcoal mb-4 tracking-tighter uppercase leading-tight font-serif italic">{bundle.name}</h1>
               
-              <div className="flex items-baseline gap-4 mb-8">
-                <p className="text-2xl text-charcoal font-sans font-black">Rs. {bundle.price}</p>
-                {bundle.original_price && (
-                  <p className="text-sm text-charcoal/30 line-through font-bold font-sans">Rs. {bundle.original_price}</p>
+              <div className="flex items-baseline gap-3 md:gap-4 mb-8 flex-wrap">
+                <p className="text-2xl md:text-3xl text-charcoal font-sans font-black">Rs. {currentDisplayPrice}</p>
+                {currentOriginalPrice && currentOriginalPrice > currentDisplayPrice && (
+                  <p className="text-base md:text-lg text-charcoal/40 line-through font-bold font-sans">Rs. {currentOriginalPrice}</p>
+                )}
+                {discountInfo.hasDiscount && (
+                  <span className="bg-red-50 text-red-600 border border-red-200 text-xs md:text-sm font-black px-2.5 py-0.5 rounded-full font-sans">
+                    Save {discountInfo.discountPercentage}%
+                  </span>
                 )}
               </div>
               

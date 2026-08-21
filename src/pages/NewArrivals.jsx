@@ -37,15 +37,7 @@ const NewArrivals = () => {
           console.warn('NewArrivals: No data returned from Supabase.');
           setProducts([]);
         } else {
-          // Map database structure to component structure if needed
-          setProducts(data.map(p => ({
-            id: p.id,
-            name: p.name,
-            category: p.category || "Artisanal",
-            price: p.price,
-            image: p.images?.[0] || "/images/placeholder.png",
-            notes: p.scent_notes?.top || []
-          })));
+          setProducts(data || []);
         }
       } catch (err) {
         console.error('NewArrivals unexpected error:', err);

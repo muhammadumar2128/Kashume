@@ -143,23 +143,23 @@ const ProductCard = ({ product, index, isNew = false }) => {
           </div>
 
           {/* Badges Container */}
-          <div className="absolute top-2 left-2 md:top-4 md:left-4 z-20 flex flex-col gap-1.5 items-start">
+          <div className="absolute top-2.5 left-2.5 md:top-4 md:left-4 z-20 flex flex-col gap-1.5 items-start max-w-[85%]">
             {isNew && (
-              <span className="text-[6px] md:text-[8px] bg-charcoal text-ivory px-1.5 md:px-2 py-0.5 md:py-1 uppercase tracking-widest font-bold rounded-sm shadow-sm">
+              <span className="text-[8px] md:text-[9px] bg-charcoal text-ivory px-2 py-0.5 md:py-1 uppercase tracking-widest font-bold rounded shadow-sm">
                 New
               </span>
             )}
             {discountInfo.hasDiscount && (
-              <span className="text-[6px] md:text-[8px] bg-red-600 text-white px-1.5 md:px-2 py-0.5 md:py-1 uppercase tracking-widest font-black rounded-sm shadow-md flex items-center gap-1">
-                <Tag size={10} className="w-2.5 h-2.5" />
-                {discountInfo.badge}
+              <span className="text-[8px] sm:text-[9px] md:text-[10px] bg-red-600 text-white px-2 py-0.5 md:px-2.5 md:py-1 uppercase tracking-wider font-black rounded shadow-md flex items-center gap-1 leading-tight">
+                <Tag size={10} className="w-2.5 h-2.5 shrink-0" />
+                <span className="truncate">{discountInfo.badge}</span>
               </span>
             )}
           </div>
 
           {product.gender && (
-            <div className="absolute top-2 right-2 md:top-4 md:right-4 z-20">
-              <span className="text-[6px] md:text-[8px] bg-gold/90 text-charcoal px-1.5 md:px-2 py-0.5 md:py-1 uppercase tracking-widest font-black rounded-sm shadow-sm backdrop-blur-sm">
+            <div className="absolute top-2.5 right-2.5 md:top-4 md:right-4 z-20">
+              <span className="text-[8px] md:text-[9px] bg-gold text-charcoal px-2 py-0.5 md:py-1 uppercase tracking-widest font-black rounded shadow-sm backdrop-blur-sm">
                 {product.gender}
               </span>
             </div>
@@ -173,14 +173,19 @@ const ProductCard = ({ product, index, isNew = false }) => {
           <h3 className="text-sm md:text-xl font-serif italic text-charcoal tracking-tight group-hover:text-gold transition-colors duration-500 font-bold">
             {product.name}
           </h3>
-          <div className="flex items-center justify-center gap-2">
-            <p className="font-sans text-[10px] md:text-[12px] font-bold text-charcoal tracking-[0.1em]">
+          <div className="flex items-center justify-center gap-1.5 md:gap-2 flex-wrap">
+            <p className="font-sans text-[11px] md:text-[13px] font-black text-charcoal tracking-[0.05em]">
               Rs. {effectivePrice}
             </p>
             {originalPriceDisplay && originalPriceDisplay > effectivePrice && (
-              <p className="font-sans text-[8px] md:text-[10px] font-bold text-charcoal/40 line-through tracking-[0.1em]">
+              <p className="font-sans text-[9px] md:text-[11px] font-bold text-charcoal/40 line-through tracking-[0.05em]">
                 Rs. {originalPriceDisplay}
               </p>
+            )}
+            {discountInfo.hasDiscount && (
+              <span className="text-[8px] md:text-[9px] font-black text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded font-sans leading-none">
+                -{discountInfo.discountPercentage}%
+              </span>
             )}
           </div>
         </div>

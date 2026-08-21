@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '../components/layout/Navbar';
-import { ShoppingBag, Star, Info, Loader2, ArrowRight } from 'lucide-react';
+import { ShoppingBag, Star, Info, Loader2, ArrowRight, Tag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useDiscounts } from '../context/DiscountContext';
+import { getEffectiveProductPrice } from '../lib/discountUtils';
 import { supabase } from '../lib/supabaseClient';
 import { Link } from 'react-router-dom';
 import LazyImage from '../components/ui/LazyImage';
@@ -10,6 +12,7 @@ import SEO from '../components/ui/SEO';
 
 const Bundles = () => {
   const { dispatch } = useCart();
+  const { discounts } = useDiscounts();
   const [bundles, setBundles] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -93,69 +96,98 @@ const Bundles = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-            {bundles.map((bundle, idx) => (
-              <motion.div 
-                key={bundle.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: idx * 0.2 }}
-                className="bg-white p-8 md:p-12 shadow-sm ring-1 ring-charcoal/5 flex flex-col md:flex-row gap-10 items-center rounded-3xl overflow-hidden"
-              >
-                <Link to={`/bundle/${bundle.id}`} className="w-full md:w-1/2 block group/img">
-                  <div className="relative aspect-[4/5] w-full max-w-[280px] mx-auto rounded-xl md:rounded-2xl overflow-hidden bg-white transition-all duration-700 group-hover/img:shadow-2xl group-hover/img:shadow-charcoal/10 ring-1 ring-charcoal/15">
-                    <LazyImage 
-                      src={bundle.image} 
-                      alt={bundle.name} 
-                      containerClassName="w-full h-full"
-                      className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover/img:scale-110"
-                    />
-                  </div>
-                </Link>
-                
-                <div className="w-full md:w-1/2 flex flex-col justify-center">
-                  <div className="flex items-center gap-2 mb-4 text-gold">
-                    <Star size={12} fill="currentColor" />
-                    <span className="text-[9px] uppercase tracking-widest font-bold">Limited Offer</span>
-                  </div>
-                  
-                  <Link to={`/bundle/${bundle.id}`}>
-                    <h3 className="text-2xl md:text-3xl font-serif italic mb-4 text-charcoal hover:text-gold transition-colors font-bold">{bundle.name}</h3>
+            {bundles.map((bundle, idx) => {
+              const discountInfo = getEffectiveProductPrice(bundle, discounts);
+              const effectivePrice = discountInfo.hasDiscount ? discountInfo.price : bundle.price;
+              const originalPrice = discountInfo.hasDiscount ? discountInfo.originalPrice : bundle.originalPrice;
+
+              return (
+                <motion.div 
+                  key={bundle.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, delay: idx * 0.2 }}
+                  className="bg-white p-8 md:p-12 shadow-sm ring-1 ring-charcoal/5 flex flex-col md:flex-row gap-10 items-center rounded-3xl overflow-hidden"
+                >
+                  <Link to={`/bundle/${bundle.id}`} className="w-full md:w-1/2 block group/img">
+                    <div className="relative aspect-[4/5] w-full max-w-[280px] mx-auto rounded-xl md:rounded-2xl overflow-hidden bg-white transition-all duration-700 group-hover/img:shadow-2xl group-hover/img:shadow-charcoal/10 ring-1 ring-charcoal/15">
+                      <LazyImage 
+                        src={bundle.image} 
+                        alt={bundle.name} 
+                        containerClassName="w-full h-full"
+                        className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover/img:scale-110"
+                      />
+                      {discountInfo.hasDiscount && (
+                        <div className="absolute top-2.5 left-2.5 z-20">
+                          <span className="text-[8px] sm:text-[9px] md:text-[10px] bg-red-600 text-white px-2 py-0.5 md:px-2.5 md:py-1 uppercase tracking-wider font-black rounded shadow-md flex items-center gap-1">
+                            <Tag size={10} className="shrink-0" />
+                            <span>{discountInfo.badge}</span>
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </Link>
+                  
+                  <div className="w-full md:w-1/2 flex flex-col justify-center">
+                    <div className="flex items-center gap-2 mb-4 text-gold">
+                      <Star size={12} fill="currentColor" />
+                      <span className="text-[9px] uppercase tracking-widest font-bold">Limited Offer</span>
+                      {discountInfo.hasDiscount && (
+                        <span className="text-[8px] uppercase tracking-wider text-red-600 font-black ml-auto">
+                          {discountInfo.percentageText}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <Link to={`/bundle/${bundle.id}`}>
+                      <h3 className="text-2xl md:text-3xl font-serif italic mb-4 text-charcoal hover:text-gold transition-colors font-bold">{bundle.name}</h3>
+                    </Link>
 
-                  <div className="flex items-baseline gap-3 mb-6">
-                    <span className="text-xl font-sans text-charcoal font-black">Rs. {bundle.price}</span>
-                    {bundle.originalPrice && <span className="text-sm font-sans text-charcoal/30 line-through font-bold">Rs. {bundle.originalPrice}</span>}
+                    <div className="flex items-baseline gap-3 mb-6 flex-wrap">
+                      <span className="text-xl font-sans text-charcoal font-black">Rs. {effectivePrice}</span>
+                      {originalPrice && <span className="text-sm font-sans text-charcoal/30 line-through font-bold">Rs. {originalPrice}</span>}
+                      {discountInfo.hasDiscount && (
+                        <span className="text-[9px] font-black text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded font-sans">
+                          -{discountInfo.discountPercentage}%
+                        </span>
+                      )}
+                    </div>
+                    
+                    <p className="text-xs text-charcoal/60 leading-relaxed mb-8 font-medium italic">
+                      {bundle.description}
+                    </p>
+                    
+                    <ul className="mb-8 space-y-2">
+                      {bundle.items && bundle.items.map(item => (
+                        <li key={item} className="text-[10px] uppercase tracking-widest text-charcoal/80 flex items-center gap-3 font-bold">
+                          <CheckCircle2 size={12} className="text-gold" /> {item}
+                        </li>
+                      ))}
+                    </ul>
+
+                    <Link 
+                      to={`/bundle/${bundle.id}`}
+                      className="text-[9px] uppercase tracking-[0.3em] text-gold font-black mb-8 flex items-center gap-2 group/link"
+                    >
+                      View Protocol <ArrowRight size={12} className="group-hover/link:translate-x-2 transition-transform" />
+                    </Link>
+
+                    <button 
+                      onClick={() => addToCart({
+                        ...bundle,
+                        price: effectivePrice,
+                        original_price: originalPrice,
+                        discount_label: discountInfo.badge
+                      })}
+                      className="w-full bg-charcoal text-ivory py-4 uppercase tracking-[0.3em] text-[10px] hover:bg-gold hover:text-charcoal transition-all flex items-center justify-center gap-3 font-bold shadow-xl shadow-charcoal/10"
+                    >
+                      <ShoppingBag size={14} /> Add Bundle
+                    </button>
                   </div>
-                  
-                  <p className="text-xs text-charcoal/60 leading-relaxed mb-8 font-medium italic">
-                    {bundle.description}
-                  </p>
-                  
-                  <ul className="mb-8 space-y-2">
-                    {bundle.items && bundle.items.map(item => (
-                      <li key={item} className="text-[10px] uppercase tracking-widest text-charcoal/80 flex items-center gap-3 font-bold">
-                        <CheckCircle2 size={12} className="text-gold" /> {item}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Link 
-                    to={`/bundle/${bundle.id}`}
-                    className="text-[9px] uppercase tracking-[0.3em] text-gold font-black mb-8 flex items-center gap-2 group/link"
-                  >
-                    View Protocol <ArrowRight size={12} className="group-hover/link:translate-x-2 transition-transform" />
-                  </Link>
-
-                  <button 
-                    onClick={() => addToCart(bundle)}
-                    className="w-full bg-charcoal text-ivory py-4 uppercase tracking-[0.3em] text-[10px] hover:bg-gold hover:text-charcoal transition-all flex items-center justify-center gap-3 font-bold shadow-xl shadow-charcoal/10"
-                  >
-                    <ShoppingBag size={14} /> Add Bundle
-                  </button>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </div>

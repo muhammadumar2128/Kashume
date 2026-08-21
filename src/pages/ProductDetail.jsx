@@ -224,17 +224,18 @@ const ProductDetail = () => {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.4, duration: 0.6 }}
-                className="absolute -top-4 -right-4 bg-red-600 text-white p-4 rounded-2xl shadow-xl z-20 flex flex-col items-center justify-center text-center ring-4 ring-white"
+                className="absolute top-3 right-3 md:-top-4 md:-right-4 bg-red-600 text-white p-3 md:p-4 rounded-xl md:rounded-2xl shadow-xl z-20 flex flex-col items-center justify-center text-center ring-2 md:ring-4 ring-white"
               >
-                <Tag size={18} className="mb-1" />
-                <span className="text-[10px] uppercase font-black tracking-widest">{discountInfo.badge}</span>
+                <Tag size={16} className="mb-1" />
+                <span className="text-[9px] md:text-[10px] uppercase font-black tracking-widest block leading-tight">{discountInfo.discountTitle || 'Sale'}</span>
+                <span className="text-[10px] md:text-xs font-black tracking-tight">{discountInfo.percentageText}</span>
               </motion.div>
             ) : (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.8, duration: 0.8 }}
-                className="absolute -top-4 -right-4 bg-gold text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg z-20"
+                className="absolute top-3 right-3 md:-top-4 md:-right-4 bg-gold text-white w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-lg z-20"
               >
                 <div className="text-center">
                   <span className="text-[8px] uppercase tracking-tighter block leading-none font-bold">Original</span>
@@ -251,26 +252,44 @@ const ProductDetail = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-3 mb-4 flex-wrap">
                 <span className="text-[10px] uppercase tracking-[0.4em] text-gold font-black">{product.category}</span>
                 {discountInfo.hasDiscount && (
-                  <span className="bg-red-600 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+                  <span className="bg-red-600 text-white text-[9px] md:text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1.5">
                     <Tag size={10} /> {discountInfo.badge}
                   </span>
                 )}
               </div>
               <h1 className="text-4xl md:text-5xl font-light text-charcoal mb-4 tracking-tight uppercase leading-tight font-serif italic">{product.name}</h1>
               
-              <div className="flex items-baseline gap-4 mb-8">
-                <p className="text-2xl text-charcoal font-sans font-bold">
+              <div className="flex items-baseline gap-3 md:gap-4 mb-6 flex-wrap">
+                <p className="text-2xl md:text-3xl text-charcoal font-sans font-black">
                   Rs. {currentDisplayPrice}
                 </p>
                 {currentOriginalPrice && currentOriginalPrice > currentDisplayPrice && (
-                  <p className="text-base text-charcoal/40 line-through font-sans font-bold">
+                  <p className="text-base md:text-lg text-charcoal/40 line-through font-sans font-bold">
                     Rs. {currentOriginalPrice}
                   </p>
                 )}
+                {discountInfo.hasDiscount && (
+                  <span className="bg-red-50 text-red-600 border border-red-200 text-xs md:text-sm font-black px-2.5 py-0.5 rounded-full font-sans">
+                    Save {discountInfo.discountPercentage}%
+                  </span>
+                )}
               </div>
+
+              {/* Promotional Callout Banner for Active Sale */}
+              {discountInfo.hasDiscount && (
+                <div className="mb-8 p-3.5 bg-gradient-to-r from-red-50 to-orange-50/50 border border-red-200/80 rounded-xl flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <Tag size={14} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-red-900 uppercase tracking-wider">{discountInfo.discountTitle || 'Sale'} Active</p>
+                    <p className="text-[11px] text-red-700 font-medium">{discountInfo.discountPercentage}% discount applied automatically</p>
+                  </div>
+                </div>
+              )}
               
               {/* Size Selector */}
               {product.sizes && product.sizes.length > 0 && (

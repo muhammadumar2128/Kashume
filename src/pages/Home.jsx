@@ -3,8 +3,10 @@ import SplitScrollHero from '../components/ui/SplitScrollHero';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Star, Check, Award, Zap, ShieldCheck } from 'lucide-react';
+import { ShoppingBag, Star, Check, Award, Zap, ShieldCheck, Tag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useDiscounts } from '../context/DiscountContext';
+import { getEffectiveProductPrice } from '../lib/discountUtils';
 import { Link } from 'react-router-dom';
 import ProductCard from '../components/shop/ProductCard';
 import SEO from '../components/ui/SEO';
@@ -14,6 +16,7 @@ const Home = () => {
   const [bundles, setBundles] = useState([]);
   const [loading, setLoading] = useState(true);
   const { dispatch } = useCart();
+  const { discounts } = useDiscounts();
 
   useEffect(() => {
     const fetchHomeData = async () => {
@@ -161,86 +164,114 @@ const Home = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 md:gap-24">
-            {bundles.map((bundle, idx) => (
-              <motion.div 
-                key={bundle.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 1, delay: idx * 0.2 }}
-                className="group relative flex flex-col md:flex-row gap-10 items-start"
-              >
-                {/* Image Side - Compact & Framed */}
-                <Link to={`/bundle/${bundle.id}`} className="w-[85%] mx-auto md:mx-0 md:w-[45%] block group/img">
-                  <div className="aspect-[3/4] overflow-hidden rounded-xl md:rounded-2xl bg-white shadow-sm ring-1 ring-charcoal/20 relative flex items-center justify-center [transform:translateZ(0)]">
-                    <motion.img 
-                      initial={{ opacity: 0, scale: 1.15, filter: "blur(10px)" }}
-                      whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                      viewport={{ once: true, margin: "-100px" }}
-                      transition={{ 
-                        duration: 3, 
-                        ease: [0.22, 1, 0.36, 1],
-                        delay: idx * 0.4 
-                      }}
-                      src={bundle.image} 
-                      alt={bundle.name} 
-                      className="w-full h-full object-cover rounded-xl md:rounded-2xl grayscale-[10%] group-hover/img:grayscale-0 group-hover/img:scale-105 transition-all duration-[3s] ease-out"
-                    />
-                    
-                    {/* Soft Ambient Shadow */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-charcoal/20 via-transparent to-transparent pointer-events-none" />
+            {bundles.map((bundle, idx) => {
+              const discountInfo = getEffectiveProductPrice(bundle, discounts);
+              const effectivePrice = discountInfo.hasDiscount ? discountInfo.price : bundle.price;
+              const originalPrice = discountInfo.hasDiscount ? discountInfo.originalPrice : bundle.originalPrice;
 
-                    <div className="absolute top-4 left-4 bg-charcoal text-[8px] text-white px-2 py-1 uppercase tracking-widest z-20 font-bold">
-                      Best Value
+              return (
+                <motion.div 
+                  key={bundle.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 1, delay: idx * 0.2 }}
+                  className="group relative flex flex-col md:flex-row gap-10 items-start"
+                >
+                  {/* Image Side - Compact & Framed */}
+                  <Link to={`/bundle/${bundle.id}`} className="w-[85%] mx-auto md:mx-0 md:w-[45%] block group/img">
+                    <div className="aspect-[3/4] overflow-hidden rounded-xl md:rounded-2xl bg-white shadow-sm ring-1 ring-charcoal/20 relative flex items-center justify-center [transform:translateZ(0)]">
+                      <motion.img 
+                        initial={{ opacity: 0, scale: 1.15, filter: "blur(10px)" }}
+                        whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                        viewport={{ once: true, margin: "-100px" }}
+                        transition={{ 
+                          duration: 3, 
+                          ease: [0.22, 1, 0.36, 1],
+                          delay: idx * 0.4 
+                        }}
+                        src={bundle.image} 
+                        alt={bundle.name} 
+                        className="w-full h-full object-cover rounded-xl md:rounded-2xl grayscale-[10%] group-hover/img:grayscale-0 group-hover/img:scale-105 transition-all duration-[3s] ease-out"
+                      />
+                      
+                      {/* Soft Ambient Shadow */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-charcoal/20 via-transparent to-transparent pointer-events-none" />
+
+                      <div className="absolute top-3 left-3 md:top-4 md:left-4 flex flex-col gap-1.5 z-20">
+                        <span className="bg-charcoal text-[8px] text-white px-2 py-1 uppercase tracking-widest font-bold rounded-sm">
+                          Best Value
+                        </span>
+                        {discountInfo.hasDiscount && (
+                          <span className="bg-red-600 text-[8px] text-white px-2 py-1 uppercase tracking-wider font-black rounded-sm shadow-md flex items-center gap-1">
+                            <Tag size={9} /> {discountInfo.badge}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </Link>
-                
-                {/* Content Side - Refined Typography */}
-                <div className="w-full md:w-[55%] flex flex-col pt-2">
-                  <div className="flex items-center gap-2 mb-4 text-gold">
-                    <Star size={10} fill="currentColor" />
-                    <span className="text-[9px] uppercase tracking-[0.3em] font-bold">Limited Set</span>
-                  </div>
-                  
-                  <Link to={`/bundle/${bundle.id}`}>
-                    <h3 className="text-3xl font-serif italic mb-4 text-charcoal tracking-tight font-bold hover:text-gold transition-colors">
-                      {bundle.name}
-                    </h3>
                   </Link>
                   
-                  <div className="flex items-baseline gap-3 mb-6">
-                    <span className="text-xl font-sans text-charcoal font-bold">Rs. {bundle.price}</span>
-                    <span className="text-xs font-sans text-charcoal/60 line-through font-bold">Rs. {bundle.originalPrice}</span>
+                  {/* Content Side - Refined Typography */}
+                  <div className="w-full md:w-[55%] flex flex-col pt-2">
+                    <div className="flex items-center gap-2 mb-4 text-gold">
+                      <Star size={10} fill="currentColor" />
+                      <span className="text-[9px] uppercase tracking-[0.3em] font-bold">Limited Set</span>
+                      {discountInfo.hasDiscount && (
+                        <span className="text-[8px] uppercase tracking-wider text-red-600 font-black ml-auto">
+                          {discountInfo.percentageText}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <Link to={`/bundle/${bundle.id}`}>
+                      <h3 className="text-3xl font-serif italic mb-4 text-charcoal tracking-tight font-bold hover:text-gold transition-colors">
+                        {bundle.name}
+                      </h3>
+                    </Link>
+                    
+                    <div className="flex items-baseline gap-3 mb-6 flex-wrap">
+                      <span className="text-xl font-sans text-charcoal font-black">Rs. {effectivePrice}</span>
+                      {originalPrice && <span className="text-xs font-sans text-charcoal/60 line-through font-bold">Rs. {originalPrice}</span>}
+                      {discountInfo.hasDiscount && (
+                        <span className="text-[9px] font-black text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded font-sans">
+                          -{discountInfo.discountPercentage}%
+                        </span>
+                      )}
+                    </div>
+                    
+                    <p className="text-[12px] text-charcoal/80 leading-relaxed mb-8 font-medium italic">
+                      {bundle.description}
+                    </p>
+
+                    <ul className="mb-10 space-y-3">
+                      {bundle.items.map(item => (
+                        <li key={item} className="text-[10px] uppercase tracking-[0.15em] text-charcoal font-bold flex items-center gap-3">
+                          <Check size={10} className="text-gold stroke-[3]" /> {item}
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="mb-8 p-3 border-l-2 border-gold bg-gold/10">
+                      <span className="text-[9px] uppercase tracking-[0.2em] text-gold font-black block">
+                        {bundle.benefit}
+                      </span>
+                    </div>
+
+                    <button 
+                      onClick={() => addToCart({
+                        ...bundle,
+                        price: effectivePrice,
+                        original_price: originalPrice,
+                        discount_label: discountInfo.badge
+                      })}
+                      className="w-full bg-charcoal text-ivory py-4 uppercase tracking-[0.4em] text-[10px] hover:bg-gold hover:text-charcoal transition-all duration-500 flex items-center justify-center gap-3 shadow-lg shadow-charcoal/20 font-bold"
+                    >
+                      <ShoppingBag size={14} strokeWidth={2} /> Add to Collection
+                    </button>
                   </div>
-                  
-                  <p className="text-[12px] text-charcoal/80 leading-relaxed mb-8 font-medium italic">
-                    {bundle.description}
-                  </p>
-
-                  <ul className="mb-10 space-y-3">
-                    {bundle.items.map(item => (
-                      <li key={item} className="text-[10px] uppercase tracking-[0.15em] text-charcoal font-bold flex items-center gap-3">
-                        <Check size={10} className="text-gold stroke-[3]" /> {item}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <div className="mb-8 p-3 border-l-2 border-gold bg-gold/10">
-                    <span className="text-[9px] uppercase tracking-[0.2em] text-gold font-black block">
-                      {bundle.benefit}
-                    </span>
-                  </div>
-
-                  <button 
-                    onClick={() => addToCart(bundle)}
-                    className="w-full bg-charcoal text-ivory py-4 uppercase tracking-[0.4em] text-[10px] hover:bg-gold hover:text-charcoal transition-all duration-500 flex items-center justify-center gap-3 shadow-lg shadow-charcoal/20 font-bold"
-                  >
-                    <ShoppingBag size={14} strokeWidth={2} /> Add to Collection
-                  </button>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>

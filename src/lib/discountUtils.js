@@ -74,29 +74,47 @@ export const getEffectiveProductPrice = (product, discounts = []) => {
   const bestDiscount = applicableDiscounts[0];
   const value = parseFloat(bestDiscount.discount_value || 0);
   let discountAmount = 0;
+  let percentValue = 0;
 
   if (bestDiscount.discount_type === 'percentage') {
     discountAmount = basePrice * (value / 100);
+    percentValue = Math.round(value);
   } else {
     discountAmount = value;
+    percentValue = Math.max(1, Math.round((value / basePrice) * 100));
   }
 
   const discountedPrice = Math.max(0, Math.round(basePrice - discountAmount));
+  const savingsAmount = Math.max(0, Math.round(basePrice - discountedPrice));
+  const percentageText = `${percentValue}% OFF`;
   
-  // Format default badge text if title isn't provided
-  let badgeLabel = bestDiscount.title;
-  if (!badgeLabel) {
-    badgeLabel = bestDiscount.discount_type === 'percentage' 
-      ? `${value}% OFF` 
-      : `Rs. ${value} OFF`;
+  // Format badge text intelligently:
+  // If title exists (e.g. "Azadi Sale" or "Independence Day Sale") and doesn't already contain percentage/OFF,
+  // combine title and percentage: "Azadi Sale • 30% OFF"
+  let badgeLabel = bestDiscount.title ? bestDiscount.title.trim() : '';
+  if (badgeLabel) {
+    const hasPercentOrOff = /%\s*off|%|off/i.test(badgeLabel);
+    if (!hasPercentOrOff) {
+      badgeLabel = `${badgeLabel} • ${percentageText}`;
+    }
+  } else {
+    badgeLabel = percentageText;
   }
+
+  const rawTitle = bestDiscount.title?.trim() || 'Azadi Sale';
 
   return {
     hasDiscount: true,
     originalPrice: basePrice,
     price: discountedPrice,
     badge: badgeLabel,
-    discountTitle: bestDiscount.title || `${value}% OFF`,
+    discountTitle: rawTitle,
+    discountPercentage: percentValue,
+    percentageText: percentageText,
+    savingsAmount: savingsAmount,
+    discountType: bestDiscount.discount_type,
+    discountValue: value,
     discount: bestDiscount
   };
 };
+

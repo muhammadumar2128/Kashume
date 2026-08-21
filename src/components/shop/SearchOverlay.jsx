@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Search, ShoppingBag, ArrowRight, Loader2 } from 'lucide-react';
+import { X, Search, ShoppingBag, ArrowRight, Loader2, Tag } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { Link } from 'react-router-dom';
 import LazyImage from '../ui/LazyImage';
+import { useDiscounts } from '../../context/DiscountContext';
+import { getEffectiveProductPrice } from '../../lib/discountUtils';
 
 const SearchOverlay = ({ isOpen, onClose }) => {
+  const { discounts } = useDiscounts();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [trending, setTrending] = useState([]);
@@ -110,28 +113,55 @@ const SearchOverlay = ({ isOpen, onClose }) => {
                     animate={{ opacity: 1, y: 0 }}
                     className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16"
                   >
-                    {results.map((product) => (
-                      <Link 
-                        key={product.id} 
-                        to={`/product/${product.id}`}
-                        onClick={onClose}
-                        className="group flex gap-6 items-center border-b border-charcoal/5 pb-8"
-                      >
-                        <div className="w-20 h-28 bg-white overflow-hidden rounded-xl ring-1 ring-charcoal/10 group-hover:shadow-2xl transition-all duration-700">
-                          <LazyImage 
-                            src={product.images?.[0] || product.image} 
-                            alt={product.name} 
-                            className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-700"
-                          />
-                        </div>
-                        <div className="flex-grow space-y-1">
-                          <span className="text-[8px] uppercase tracking-[0.3em] text-gold font-bold">{product.gender}</span>
-                          <h3 className="text-xl font-serif italic text-charcoal group-hover:text-gold transition-colors">{product.name}</h3>
-                          <p className="text-xs text-charcoal/40 font-bold tracking-widest">Rs. {product.price}</p>
-                        </div>
-                        <ArrowRight size={18} className="text-charcoal/20 group-hover:text-gold group-hover:translate-x-2 transition-all" />
-                      </Link>
-                    ))}
+                    {results.map((product) => {
+                      const discountInfo = getEffectiveProductPrice(product, discounts);
+                      const effectivePrice = discountInfo.hasDiscount ? discountInfo.price : product.price;
+                      const originalPrice = discountInfo.hasDiscount ? discountInfo.originalPrice : (product.original_price && product.original_price > product.price ? product.original_price : null);
+
+                      return (
+                        <Link 
+                          key={product.id} 
+                          to={`/product/${product.id}`}
+                          onClick={onClose}
+                          className="group flex gap-6 items-center border-b border-charcoal/5 pb-8"
+                        >
+                          <div className="w-20 h-28 bg-white overflow-hidden rounded-xl ring-1 ring-charcoal/10 group-hover:shadow-2xl transition-all duration-700 relative">
+                            <LazyImage 
+                              src={product.images?.[0] || product.image} 
+                              alt={product.name} 
+                              className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-700"
+                            />
+                            {discountInfo.hasDiscount && (
+                              <div className="absolute top-1.5 left-1.5 z-10">
+                                <span className="bg-red-600 text-white text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm flex items-center gap-0.5">
+                                  <Tag size={8} /> {discountInfo.discountPercentage}%
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-grow space-y-1">
+                            <div className="flex items-center gap-2">
+                              {product.gender && (
+                                <span className="text-[8px] uppercase tracking-[0.3em] text-gold font-bold">{product.gender}</span>
+                              )}
+                              {discountInfo.hasDiscount && (
+                                <span className="text-[8px] uppercase tracking-wider text-red-600 font-bold">
+                                  {discountInfo.discountTitle}
+                                </span>
+                              )}
+                            </div>
+                            <h3 className="text-xl font-serif italic text-charcoal group-hover:text-gold transition-colors">{product.name}</h3>
+                            <div className="flex items-center gap-2">
+                              <p className="text-xs text-charcoal font-bold tracking-widest">Rs. {effectivePrice}</p>
+                              {originalPrice && originalPrice > effectivePrice && (
+                                <p className="text-[10px] text-charcoal/40 font-bold line-through tracking-widest">Rs. {originalPrice}</p>
+                              )}
+                            </div>
+                          </div>
+                          <ArrowRight size={18} className="text-charcoal/20 group-hover:text-gold group-hover:translate-x-2 transition-all" />
+                        </Link>
+                      );
+                    })}
                   </motion.div>
                 ) : query.trim().length >= 2 && !loading ? (
                   <motion.div 
