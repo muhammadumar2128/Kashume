@@ -370,6 +370,7 @@ const AdminDashboard = () => {
 
     try {
       let savedSuccessfully = false;
+      let savedRecord = null;
       try {
         let dbPromise;
         if (editingItem) {
@@ -384,22 +385,25 @@ const AdminDashboard = () => {
         );
 
         const result = await Promise.race([dbPromise, timeoutPromise]);
-        if (!result.error) {
+        if (!result.error && result.data && result.data.length > 0) {
           savedSuccessfully = true;
-        } else {
+          savedRecord = result.data[0];
+        } else if (result.error) {
           console.warn("Supabase save error, switching to local fallback:", result.error.message);
         }
       } catch (dbErr) {
         console.warn("DB exception, utilizing local storage fallback:", dbErr.message);
       }
 
-      // Local fallback for discounts if DB table is pending creation
+      // Local sync for discounts
       if (activeTab === 'discounts') {
         let updatedDiscounts = [...discounts];
         if (editingItem) {
           updatedDiscounts = updatedDiscounts.map(d => d.id === editingItem.id ? { ...d, ...payload, id: editingItem.id } : d);
         } else {
-          const newDiscountItem = { ...payload, id: `disc_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`, created_at: new Date().toISOString() };
+          const newDiscountItem = (savedRecord && savedRecord.id) 
+            ? savedRecord 
+            : { ...payload, id: `disc_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`, created_at: new Date().toISOString() };
           updatedDiscounts.unshift(newDiscountItem);
         }
         setDiscounts(updatedDiscounts);
@@ -916,17 +920,21 @@ const AdminDashboard = () => {
                         </td>
                         <td className="p-4 md:p-6 font-sans font-bold whitespace-nowrap">Rs. {o.total}</td>
                         <td className="p-4 md:p-6">
-                          <span className={`text-[7px] md:text-[8px] uppercase tracking-widest px-2 md:px-3 py-1 md:py-1.5 rounded-full font-bold whitespace-nowrap ${
-                            o.status === 'delivered' ? 'bg-green-100 text-green-700' : 'bg-gold/20 text-gold-800'
+                          <span className={`text-[7px] md:text-[8px] uppercase tracking-widest px-2.5 md:px-3 py-1 md:py-1.5 rounded-full font-bold whitespace-nowrap border ${
+                            o.status === 'delivered' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                            o.status === 'shipped' ? 'bg-sky-50 text-sky-700 border-sky-200' :
+                            o.status === 'cancelled' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                            'bg-amber-50 text-amber-800 border-amber-200'
                           }`}>{o.status}</span>
                         </td>
                         <td className="p-4 md:p-6 text-right" onClick={(e) => e.stopPropagation()}>
                           <select 
-                            className="text-[8px] md:text-[9px] uppercase tracking-widest bg-white border border-charcoal/20 p-1.5 md:p-2 focus:outline-none focus:border-gold transition-colors rounded-sm text-charcoal font-bold max-w-[90px] md:max-w-none"
+                            className="text-[8px] md:text-[9px] uppercase tracking-widest bg-white border border-charcoal/20 p-1.5 md:p-2 focus:outline-none focus:border-gold transition-colors rounded-sm text-charcoal font-bold max-w-[90px] md:max-w-none cursor-pointer"
                             onChange={async (e) => {
                               const newStatus = e.target.value;
                               const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', o.id);
                               if (!error) {
+                                showNotification(`Order #${o.id.slice(0,8)} marked as ${newStatus}`);
                                 // Trigger email notification via Vercel Serverless Function
                                 await fetch('/api/send-email', {
                                   method: 'POST',
@@ -937,6 +945,8 @@ const AdminDashboard = () => {
                                   })
                                 });
                                 fetchData();
+                              } else {
+                                showNotification(`Failed to update status: ${error.message}`, 'error');
                               }
                             }}
                             value={o.status}
@@ -944,6 +954,7 @@ const AdminDashboard = () => {
                             <option value="pending">Pending</option>
                             <option value="shipped">Shipped</option>
                             <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
                           </select>
                         </td>
                       </tr>
@@ -1743,13 +1754,46 @@ const AdminDashboard = () => {
                   </div>
                 </section>
 
-                {/* Financial Summary */}
-                <section className="pt-6 border-t border-charcoal/10 flex justify-between items-end">
-                  <div className="space-y-2">
-                    <p className="text-[10px] uppercase tracking-[0.3em] text-charcoal/40 font-bold">Exchange Protocol</p>
-                    <p className="text-xs font-bold text-gold uppercase tracking-widest">{selectedOrder.payment_method}</p>
+                {/* Financial Summary & Status Changer */}
+                <section className="pt-6 border-t border-charcoal/10 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-charcoal/40 font-bold">Exchange Protocol</p>
+                      <p className="text-xs font-bold text-gold uppercase tracking-widest">{selectedOrder.payment_method}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-charcoal/40 font-bold">Order Status</p>
+                      <select 
+                        className="text-xs uppercase tracking-widest bg-[#F5F2ED] border border-charcoal/20 px-3 py-1.5 focus:outline-none focus:border-gold transition-colors rounded-sm text-charcoal font-bold cursor-pointer"
+                        value={selectedOrder.status}
+                        onChange={async (e) => {
+                          const newStatus = e.target.value;
+                          const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', selectedOrder.id);
+                          if (!error) {
+                            setSelectedOrder({ ...selectedOrder, status: newStatus });
+                            showNotification(`Order #${selectedOrder.id.slice(0,8)} marked as ${newStatus}`);
+                            await fetch('/api/send-email', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                order: { ...selectedOrder, status: newStatus },
+                                type: 'order_status_update'
+                              })
+                            });
+                            fetchData();
+                          } else {
+                            showNotification(`Failed to update status: ${error.message}`, 'error');
+                          }
+                        }}
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                    </div>
                   </div>
-                  <div className="text-right space-y-1">
+                  <div className="text-left md:text-right space-y-1">
                     <p className="text-[10px] uppercase tracking-[0.3em] text-charcoal/40 font-bold">Total Valuation</p>
                     <p className="text-2xl font-serif italic font-black text-charcoal">Rs. {selectedOrder.total.toLocaleString()}</p>
                   </div>

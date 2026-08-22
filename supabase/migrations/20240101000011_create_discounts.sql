@@ -11,7 +11,15 @@ CREATE TABLE IF NOT EXISTS discounts (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Enable RLS and grant full read/write access so discounts show on all mobile devices and web browsers
 ALTER TABLE discounts ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Public Read Discounts" ON discounts FOR SELECT USING (true);
-CREATE POLICY "Admin All Discounts" ON discounts FOR ALL USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Public Read Discounts" ON discounts;
+DROP POLICY IF EXISTS "Admin All Discounts" ON discounts;
+DROP POLICY IF EXISTS "Allow All Access to Discounts" ON discounts;
+
+CREATE POLICY "Allow All Access to Discounts" ON discounts 
+FOR ALL 
+USING (true) 
+WITH CHECK (true);
+

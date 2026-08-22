@@ -307,10 +307,11 @@ const Account = () => {
                               </div>
                             </div>
                             <div className="text-right">
-                              <span className={`text-[8px] uppercase tracking-[0.3em] px-3 py-1 border ${
-                                order.status === 'delivered' ? 'border-green-200 text-green-600 bg-green-50' : 
-                                order.status === 'shipped' ? 'border-blue-200 text-blue-600 bg-blue-50' :
-                                'border-gold/20 text-gold bg-gold/5'
+                              <span className={`text-[8px] uppercase tracking-[0.3em] px-3 py-1 border font-bold rounded-sm ${
+                                order.status === 'delivered' ? 'border-green-200 text-green-700 bg-green-50' : 
+                                order.status === 'shipped' ? 'border-blue-200 text-blue-700 bg-blue-50' :
+                                order.status === 'cancelled' ? 'border-red-200 text-red-700 bg-red-50' :
+                                'border-amber-200 text-amber-800 bg-amber-50'
                               }`}>
                                 {order.status}
                               </span>
